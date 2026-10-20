@@ -9,9 +9,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --maroon:#800020; --maroon-deep:#5a0016; --maroon-soft:#f6e6ea;
-    --green:#3da572; --green-deep:#1c7f4b;
-    --paper:#f4f3f5; --surface:#fff; --ink:#22141a; --muted:#6f6168; --line:#e4dfe2;
+    --brand:#1f2a44; --brand-deep:#141c30; --brand-soft:#e6e9f2;
+    --green:#23895a; --green-deep:#186b45;
+    --taken:#9b3a4d;
+    --paper:#f6f2ec; --surface:#fff; --ink:#1b2233; --muted:#667085; --line:#e5dfd6;
     --display:'Bricolage Grotesque',system-ui,sans-serif;
     --body:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   }
@@ -19,33 +20,33 @@
   html { scroll-behavior:smooth; }
   body { margin:0; font-family:var(--body); background:var(--paper); color:var(--ink); line-height:1.45; }
   button, input { font:inherit; }
-  :focus-visible { outline:3px solid #e8a0b2; outline-offset:2px; }
+  :focus-visible { outline:3px solid #9fb0e0; outline-offset:2px; }
   .wrap { max-width:720px; margin:0 auto; padding:0 16px; }
 
   /* hero: brand, title, week strip */
-  .hero { background:var(--maroon); color:#fff; padding:26px 0 22px; border-radius:0 0 28px 28px; }
+  .hero { background:var(--brand); color:#fff; padding:26px 0 22px; border-radius:0 0 28px 28px; }
   .hero .brand { margin:0 0 14px; color:#fff; font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:-.005em; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,.22); }
   .hero h1 { margin:0 0 20px; font-family:var(--display); font-weight:800; font-size:clamp(30px,7vw,42px); line-height:1.05; letter-spacing:-.02em; }
   #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; padding:5px 4px 8px; margin:0 -4px; scrollbar-width:none; }
   #days::-webkit-scrollbar { display:none; }
-  .day { flex:0 0 70px; min-height:72px; scroll-snap-align:start; border:0; border-radius:14px; padding:9px 4px; background:#6fc596; color:#0a3320; cursor:pointer; text-align:center; transition:filter .15s, transform .15s, box-shadow .15s; }
+  .day { flex:0 0 70px; min-height:72px; scroll-snap-align:start; border:0; border-radius:14px; padding:9px 4px; background:#86d6ae; color:#0c3a24; cursor:pointer; text-align:center; transition:filter .15s, transform .15s, box-shadow .15s; }
   .day:hover { filter:brightness(1.07); }
   .day .dn, .day .dc { display:block; font-size:11.5px; font-weight:600; opacity:.9; }
   .day .dd { display:block; font-family:var(--display); font-weight:800; font-size:26px; line-height:1.1; margin:1px 0 2px; }
-  .day.ok   { background:#6fc596; color:#0a3320; }
-  .day.low  { background:#f9c04f; color:#3d2600; }
-  .day.none { background:#f3d9df; color:var(--maroon); }
+  .day.ok   { background:#86d6ae; color:#0c3a24; }
+  .day.low  { background:#f6c453; color:#3d2a00; }
+  .day.none { background:#f1d3d8; color:#8a2b3c; }
   .day[aria-pressed="true"] { transform:translateY(-2px); box-shadow:0 0 0 3px #fff; }
 
   /* time cards */
-  main { padding:24px 0 64px; }
+  main.wrap { padding-top:24px; padding-bottom:64px; }
   .head { padding-top:8px; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
   .head h2 { margin:0; font-family:var(--display); font-size:22px; font-weight:700; letter-spacing:-.01em; }
   .head span { color:var(--muted); font-size:14px; font-weight:500; }
   .legend { display:flex; gap:18px; font-size:13px; color:var(--muted); margin:0 0 16px; }
   .legend i { display:inline-block; width:14px; height:14px; border-radius:5px; margin-right:6px; vertical-align:-2px; }
   .legend .l-free { background:var(--green); }
-  .legend .l-taken { background:var(--maroon); }
+  .legend .l-taken { background:var(--taken); }
 
   #slots { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
   .slot { border:0; border-radius:16px; padding:13px 14px 15px; text-align:left; color:#fff; min-height:82px; display:flex; flex-direction:column; justify-content:space-between; gap:14px; }
@@ -54,31 +55,31 @@
   .slot.taken small::before { background:transparent; border:1.5px solid rgba(255,255,255,.8); }
   .slot b { font-family:var(--display); font-size:19px; font-weight:700; line-height:1; letter-spacing:-.01em; white-space:nowrap; }
   .slot.free { background:var(--green); cursor:pointer; transition:transform .12s, box-shadow .12s, background .12s; }
-  .slot.free:hover { background:var(--green-deep); transform:translateY(-2px); box-shadow:0 8px 18px rgba(28,127,75,.28); }
+  .slot.free:hover { background:var(--green-deep); transform:translateY(-2px); box-shadow:0 8px 18px rgba(35,137,90,.28); }
   .slot.free:active { transform:translateY(0); }
-  .slot.taken { background:var(--maroon); cursor:not-allowed;
+  .slot.taken { background:var(--taken); cursor:not-allowed;
     background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 6px,transparent 6px 12px); }
   .slot.taken b { opacity:.85; }
 
-  .foot { background:var(--maroon); color:#fff; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px; border-radius:28px 28px 0 0; }
+  .foot { background:var(--brand); color:#fff; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px; border-radius:28px 28px 0 0; }
 
-  .skel { height:82px; border-radius:16px; background:linear-gradient(90deg,#e9e5e8,#f3f1f3,#e9e5e8); background-size:200% 100%; animation:sh 1.2s linear infinite; }
+  .skel { height:82px; border-radius:16px; background:linear-gradient(90deg,#ebe6de,#f4f0ea,#ebe6de); background-size:200% 100%; animation:sh 1.2s linear infinite; }
   @keyframes sh { to { background-position:-200% 0; } }
   .note { grid-column:1/-1; text-align:center; padding:36px 16px; color:var(--muted); }
   .note button { margin-top:12px; }
   .btn { border:0; border-radius:12px; padding:13px 20px; font-weight:700; font-size:16px; cursor:pointer; }
-  .btn.primary { background:var(--maroon); color:#fff; }
-  .btn.primary:hover { background:var(--maroon-deep); }
+  .btn.primary { background:var(--brand); color:#fff; }
+  .btn.primary:hover { background:var(--brand-deep); }
   .btn.primary:disabled { opacity:.6; cursor:wait; }
 
   /* centered dialog */
-  dialog { border:0; padding:0; border-radius:22px; width:min(420px,calc(100% - 32px)); max-height:calc(100% - 32px); overflow:auto; background:var(--surface); color:var(--ink); box-shadow:0 30px 80px rgba(40,0,12,.35); }
+  dialog { border:0; padding:0; border-radius:22px; width:min(420px,calc(100% - 32px)); max-height:calc(100% - 32px); overflow:auto; background:var(--surface); color:var(--ink); box-shadow:0 30px 80px rgba(10,15,35,.35); }
   dialog[open] { animation:pop .22s cubic-bezier(.2,.9,.3,1.2); }
-  dialog::backdrop { background:rgba(34,10,18,.55); backdrop-filter:blur(3px); animation:fade .2s; }
+  dialog::backdrop { background:rgba(14,18,32,.55); backdrop-filter:blur(3px); animation:fade .2s; }
   @keyframes pop { from { opacity:0; transform:scale(.94) translateY(8px); } }
   @keyframes fade { from { opacity:0; } }
-  .ticket { background:var(--maroon); color:#fff; padding:22px 22px 18px; position:relative; }
-  .ticket .when { margin:0; font-size:14px; color:#f0cfd8; font-weight:500; padding-right:40px; }
+  .ticket { background:var(--brand); color:#fff; padding:22px 22px 18px; position:relative; }
+  .ticket .when { margin:0; font-size:14px; color:#c5cbe0; font-weight:500; padding-right:40px; }
   .ticket h2 { margin:4px 0 0; font-family:var(--display); font-size:34px; font-weight:800; line-height:1.05; letter-spacing:-.02em; white-space:nowrap; }
   .x { position:absolute; top:12px; right:12px; width:36px; height:36px; border:0; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:20px; line-height:1; cursor:pointer; }
   .x:hover { background:rgba(255,255,255,.26); }
@@ -86,12 +87,19 @@
   .field { margin-bottom:14px; }
   label { display:block; font-weight:600; font-size:14px; margin-bottom:6px; }
   input { width:100%; padding:14px; border:1.5px solid var(--line); border-radius:12px; font-size:16px; background:#fff; color:var(--ink); }
-  input:focus { outline:none; border-color:var(--maroon); box-shadow:0 0 0 4px var(--maroon-soft); }
+  input:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 4px var(--brand-soft); }
   input[aria-invalid="true"] { border-color:#c0213d; }
   .err { color:#b3001b; font-size:13.5px; margin:6px 0 0; }
   .err:empty { display:none; }
   #formErr { background:#fdecef; border-radius:10px; padding:10px 12px; margin:0 0 14px; }
   form .btn { width:100%; margin-top:4px; }
+  .dupbox { padding:24px 22px 22px; }
+  .dupbox h2 { margin:0 0 8px; font-family:var(--display); font-size:24px; letter-spacing:-.01em; }
+  .dupbox p { margin:0 0 20px; color:var(--muted); }
+  .dupbtns { display:flex; gap:10px; }
+  .dupbtns .btn { flex:1; padding:13px 10px; }
+  .btn.ghost { background:var(--brand-soft); color:var(--brand); }
+  .btn.ghost:hover { background:#d4daeb; }
   .done { text-align:center; }
   .tick { width:64px; height:64px; margin:6px auto 14px; border-radius:50%; background:var(--green); display:grid; place-items:center; }
   .tick svg { width:32px; height:32px; stroke:#fff; stroke-width:3.2; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:30; stroke-dashoffset:30; animation:draw .45s .15s ease forwards; }
@@ -100,8 +108,8 @@
   .done p { margin:0 0 4px; }
   .done .sum { font-weight:700; }
   .done .jam { color:var(--muted); font-weight:600; }
-  .done .addr { display:inline-block; margin-top:14px; color:var(--maroon); font-weight:700; text-decoration:underline; text-underline-offset:3px; }
-  .done .addr:hover { color:var(--maroon-deep); }
+  .done .addr { display:inline-block; margin-top:14px; color:var(--brand); font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+  .done .addr:hover { color:var(--brand-deep); }
   .done .btn { width:100%; margin-top:20px; }
 
   @media (prefers-reduced-motion:reduce) {
@@ -166,6 +174,17 @@
   </div>
 </dialog>
 
+<dialog id="dup" aria-labelledby="dupTitle">
+  <div class="dupbox">
+    <h2 id="dupTitle">Sudah ada janji temu</h2>
+    <p id="dupMsg"></p>
+    <div class="dupbtns">
+      <button type="button" class="btn ghost" id="dupNo">Tidak</button>
+      <button type="button" class="btn primary" id="dupYes">Ya, ubah</button>
+    </div>
+  </div>
+</dialog>
+
 <script src="config.js"></script>
 <script>
 const $ = s => document.querySelector(s);
@@ -191,6 +210,32 @@ function addressUrl() {
   if (typeof ADDRESS_URL !== 'undefined' && ADDRESS_URL && !ADDRESS_URL.startsWith('PASTE')) return ADDRESS_URL;
   return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent("Hen's Bone Setting");
 }
+
+/* ---- existing appointment (this device) ---- */
+const STORE = 'hbs_booking';
+function saveMine(b) { try { localStorage.setItem(STORE, JSON.stringify(b)); } catch (e) {} }
+function getMine() {
+  try {
+    const b = JSON.parse(localStorage.getItem(STORE) || 'null');
+    if (b && b.date && b.time && (b.date + ' ' + b.time) > cfg.now) return b;
+  } catch (e) {}
+  return null;
+}
+const dup = $('#dup');
+let pending = null;
+function askChange(date, time) {
+  const m = getMine();
+  pending = { date, time, old: m };
+  $('#dupMsg').textContent = 'Anda sudah memiliki janji temu pada ' + fullDate(m.date) + ', pukul ' + range(m.time) + '. Ingin mengubah waktu janji temu?';
+  dup.showModal();
+}
+function closeDup() { if (dup.open) dup.close(); }
+dup.addEventListener('click', e => { if (e.target === dup) closeDup(); });
+$('#dupNo').onclick = closeDup;
+$('#dupYes').onclick = () => {
+  const p = pending; closeDup();
+  if (p) openDialog(p.date, p.time, p.old);
+};
 
 function showSkeleton() {
   const s = $('#slots'); s.replaceChildren();
@@ -244,7 +289,7 @@ function render() {
     b.disabled = !free;
     b.append(el('small', null, free ? 'Tersedia' : 'Tidak tersedia'), el('b', null, range(t)));
     b.setAttribute('aria-label', range(t) + (free ? ', tersedia' : ', tidak tersedia'));
-    if (free) b.onclick = () => openDialog(selDate, t);
+    if (free) b.onclick = () => getMine() ? askChange(selDate, t) : openDialog(selDate, t);
     list.append(b);
   });
 }
@@ -255,11 +300,12 @@ function setErr(id, msg) {
   const input = { nameErr: '#name', phoneErr: '#phone' }[id];
   if (input) $(input).setAttribute('aria-invalid', msg ? 'true' : 'false');
 }
-function openDialog(date, time) {
-  picked = { date, time };
+function openDialog(date, time, old) {
+  picked = { date, time, old: old || null };
   $('#dWhen').textContent = fullDate(date);
   $('#dTitle').textContent = range(time);
   $('#form').reset();
+  if (old && old.name) { $('#name').value = old.name; $('#phone').value = old.phone || ''; }
   ['nameErr', 'phoneErr', 'formErr'].forEach(i => setErr(i, ''));
   $('#formView').hidden = false; $('#doneView').hidden = true;
   $('#save').disabled = false; $('#save').textContent = 'Simpan';
@@ -288,10 +334,20 @@ $('#form').addEventListener('submit', async e => {
     const r = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: 'book', date: picked.date, time: picked.time, name, phone })
+      body: JSON.stringify(picked.old
+        ? { action: 'reschedule', oldDate: picked.old.date, oldTime: picked.old.time, date: picked.date, time: picked.time, name, phone }
+        : { action: 'book', date: picked.date, time: picked.time, name, phone })
     });
     const d = await r.json();
     if (!d.ok) {
+      if (/duplicate|already|exist/i.test(d.error || '') && d.existing && !picked.old) {
+        saveMine({ date: d.existing.date, time: d.existing.time, name, phone });
+        const t = picked;
+        await load();
+        closeDialog();
+        askChange(t.date, t.time);
+        return;
+      }
       const gone = /taken|past/i.test(d.error || '');
       setErr('formErr', gone ? 'Maaf, jam ini sudah tidak tersedia. Silakan pilih jam lain.' : 'Gagal menyimpan. Silakan coba lagi.');
       save.disabled = false; save.textContent = 'Simpan';
@@ -299,6 +355,7 @@ $('#form').addEventListener('submit', async e => {
       if (gone) setTimeout(closeDialog, 2200);
       return;
     }
+    saveMine({ date: picked.date, time: picked.time, name, phone });
     $('#doneDate').textContent = fullDate(picked.date);
     $('#doneTime').textContent = 'Pukul: ' + range(picked.time);
     $('#addr').href = addressUrl();
