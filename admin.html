@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hen's Bone Setting – Buat Janji Temu</title>
+<meta name="robots" content="noindex,nofollow">
+<title>Admin – Hen's Bone Setting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,358 +21,359 @@
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   [hidden] { display:none !important; }
-  html { scroll-behavior:smooth; }
   body { margin:0; font-family:var(--body); background:var(--paper); color:var(--ink); line-height:1.45; }
+  body.busy { cursor:progress; }
+  body.busy button { pointer-events:none; opacity:.6; }
   button, input { font:inherit; }
+  button { cursor:pointer; }
   :focus-visible { outline:3px solid #3b82f6; outline-offset:2px; }
-  .wrap { max-width:720px; margin:0 auto; padding:0 16px; }
+  .wrap { max-width:1280px; margin:0 auto; padding:0 16px; }
 
-  /* header: brand, title, week strip */
-  .hero { background:var(--surface); color:var(--ink); padding:22px 0 14px; border-bottom:1px solid var(--line); }
-  .hero .brand { margin:0 0 14px; font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; padding-bottom:12px; border-bottom:1px solid var(--line); }
-  .hero h1 { margin:0 0 18px; font-family:var(--display); font-weight:800; font-size:clamp(28px,6.5vw,38px); line-height:1.1; letter-spacing:-.03em; }
-  #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; padding:5px 4px 8px; margin:0 -4px; scrollbar-width:none; }
-  #days::-webkit-scrollbar { display:none; }
-  .day { flex:0 0 70px; min-height:72px; scroll-snap-align:start; border:0; border-radius:12px; padding:9px 4px; background:#e4f5ec; color:#0b5d37; cursor:pointer; text-align:center; transition:transform .15s, box-shadow .15s, filter .15s; }
-  .day:hover { filter:brightness(.97); }
-  .day .dn, .day .dc { display:block; font-size:11.5px; font-weight:600; opacity:.85; }
-  .day .dd { display:block; font-family:var(--display); font-weight:700; font-size:24px; line-height:1.1; margin:1px 0 2px; letter-spacing:-.02em; }
-  .day.ok   { background:#e4f5ec; color:#0b5d37; }
-  .day.low  { background:#fff1cc; color:#6b4300; }
-  .day.none { background:#fdeaed; color:#a1283b; }
-  .day[aria-pressed="true"] { transform:translateY(-2px); box-shadow:0 0 0 2px var(--blue); }
-
-  /* time cards */
-  main.wrap { padding-top:24px; padding-bottom:64px; }
-  .head { padding-top:8px; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
-  .head h2 { margin:0; font-family:var(--display); font-size:20px; font-weight:700; letter-spacing:-.02em; }
-  .head span { color:var(--muted); font-size:14px; font-weight:500; }
-  .legend { display:flex; gap:18px; font-size:13px; color:var(--muted); margin:0 0 16px; }
-  .legend i { display:inline-block; width:14px; height:14px; border-radius:4px; margin-right:6px; vertical-align:-2px; box-sizing:border-box; }
-  .legend .l-free { background:#fff; border:1.5px solid var(--blue); }
-  .legend .l-taken { background:#e9ecf0; }
-
-  #slots { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
-  .slot { border:1px solid transparent; border-radius:12px; padding:13px 14px 15px; text-align:left; min-height:82px; display:flex; flex-direction:column; justify-content:space-between; gap:14px; }
-  .slot small { display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; }
-  .slot small::before { content:""; width:8px; height:8px; border-radius:50%; background:currentColor; }
-  .slot.taken small::before { background:transparent; border:1.5px solid currentColor; }
-  .slot b { font-family:var(--display); font-size:18px; font-weight:700; line-height:1; letter-spacing:-.02em; white-space:nowrap; }
-  .slot.free { background:var(--surface); color:var(--blue); border-color:var(--blue); cursor:pointer; transition:transform .12s, box-shadow .12s, background .12s, color .12s; }
-  .slot.free:hover { background:var(--blue); color:#fff; transform:translateY(-2px); box-shadow:var(--lift); }
-  .slot.free:active { transform:translateY(0); }
-  .slot.taken { background:#eceff3; color:#98a4b3; cursor:not-allowed; }
-
-  .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px; }
-
-  .skel { height:82px; border-radius:12px; background:linear-gradient(90deg,#eceff3,#f6f7f9,#eceff3); background-size:200% 100%; animation:sh 1.2s linear infinite; }
-  @keyframes sh { to { background-position:-200% 0; } }
-  .note { grid-column:1/-1; text-align:center; padding:36px 16px; color:var(--muted); }
-  .note button { margin-top:12px; }
-  .btn { border:0; border-radius:10px; padding:13px 20px; font-weight:600; font-size:16px; cursor:pointer; }
+  /* login */
+  .login-page { min-height:100vh; background:var(--paper); display:grid; place-items:center; padding:20px; }
+  .login { width:min(380px,100%); background:var(--surface); border-radius:16px; padding:28px 24px 24px; box-shadow:var(--ring), 0 12px 40px rgba(71,103,136,.16); }
+  .login .brand { margin:0 0 2px; font-weight:600; font-size:14px; color:var(--muted); }
+  .login h1 { margin:0 0 18px; font-family:var(--display); font-weight:800; font-size:30px; letter-spacing:-.03em; }
+  label { display:block; font-weight:600; font-size:14px; margin-bottom:6px; }
+  .login input { width:100%; padding:14px; border:1px solid #cdd5de; border-radius:10px; font-size:16px; background:#fff; color:var(--ink); }
+  .login input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 4px var(--blue-soft); }
+  #lerr { color:#b42318; font-size:13.5px; min-height:20px; margin:8px 0 0; }
+  .btn { border:0; border-radius:10px; padding:13px 20px; font-weight:600; font-size:16px; }
   .btn.primary { background:var(--blue); color:#fff; }
   .btn.primary:hover { background:var(--blue-deep); }
-  .btn.primary:disabled { opacity:.6; cursor:wait; }
   .btn.ghost { background:var(--chip); color:var(--ink); }
   .btn.ghost:hover { background:#e6eaef; }
+  .login .btn { width:100%; margin-top:8px; }
 
-  /* dialogs */
-  dialog { border:0; padding:0; border-radius:16px; width:min(420px,calc(100% - 32px)); max-height:calc(100% - 32px); overflow:auto; background:var(--surface); color:var(--ink); box-shadow:0 24px 60px rgba(11,53,88,.28); }
-  dialog[open] { animation:pop .22s cubic-bezier(.2,.9,.3,1.2); }
-  dialog::backdrop { background:rgba(11,53,88,.45); backdrop-filter:blur(3px); animation:fade .2s; }
-  @keyframes pop { from { opacity:0; transform:scale(.94) translateY(8px); } }
-  @keyframes fade { from { opacity:0; } }
-  .ticket { background:var(--ink); color:#fff; padding:22px 22px 18px; position:relative; }
-  .ticket .when { margin:0; font-size:14px; color:#a9bbd0; font-weight:500; padding-right:40px; }
-  .ticket h2 { margin:4px 0 0; font-family:var(--display); font-size:32px; font-weight:800; line-height:1.05; letter-spacing:-.03em; white-space:nowrap; }
-  .x { position:absolute; top:12px; right:12px; width:36px; height:36px; border:0; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:20px; line-height:1; cursor:pointer; }
-  .x:hover { background:rgba(255,255,255,.26); }
-  form, .done { padding:20px 22px 24px; }
-  .field { margin-bottom:14px; }
-  label { display:block; font-weight:600; font-size:14px; margin-bottom:6px; }
-  input { width:100%; padding:14px; border:1px solid #cdd5de; border-radius:10px; font-size:16px; background:#fff; color:var(--ink); }
-  input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 4px var(--blue-soft); }
-  input[aria-invalid="true"] { border-color:#d92d20; }
-  .err { color:#b42318; font-size:13.5px; margin:6px 0 0; }
-  .err:empty { display:none; }
-  #formErr { background:#fef3f2; border-radius:10px; padding:10px 12px; margin:0 0 14px; }
-  form .btn { width:100%; margin-top:4px; }
-  .dupbox { padding:24px 22px 22px; }
-  .dupbox h2 { margin:0 0 8px; font-family:var(--display); font-size:22px; letter-spacing:-.02em; }
-  .dupbox p { margin:0 0 20px; color:var(--muted); }
-  .dupbtns { display:flex; gap:10px; }
-  .dupbtns .btn { flex:1; padding:13px 10px; }
-  .done { text-align:center; }
-  .tick { width:64px; height:64px; margin:6px auto 14px; border-radius:50%; background:var(--ok); display:grid; place-items:center; }
-  .tick svg { width:32px; height:32px; stroke:#fff; stroke-width:3.2; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:30; stroke-dashoffset:30; animation:draw .45s .15s ease forwards; }
-  @keyframes draw { to { stroke-dashoffset:0; } }
-  .done h2 { margin:0 0 8px; font-family:var(--display); font-size:26px; letter-spacing:-.02em; }
-  .done p { margin:0 0 4px; }
-  .done .sum { font-weight:700; }
-  .done .jam { color:var(--muted); font-weight:600; }
-  .done .addr { display:inline-block; margin-top:14px; color:var(--blue); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
-  .done .addr:hover { color:var(--blue-deep); }
-  .done .btn { width:100%; margin-top:20px; }
+  /* header */
+  .hero { background:var(--surface); color:var(--ink); padding:18px 0 14px; border-bottom:1px solid var(--line); }
+  .top { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid var(--line); }
+  .top b { font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; }
+  .top b small { font-weight:600; font-size:12px; background:var(--blue-soft); color:var(--blue); padding:3px 9px; border-radius:20px; margin-left:8px; vertical-align:1px; }
+  .pill { border:0; border-radius:10px; padding:8px 14px; background:var(--chip); color:var(--ink); font-weight:600; font-size:14px; }
+  .pill:hover { background:#e6eaef; }
+  .row2 { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; justify-content:space-between; }
+  .row2 h1 { margin:0; font-family:var(--display); font-weight:800; font-size:clamp(24px,5vw,32px); line-height:1.1; letter-spacing:-.03em; }
+  .nav { display:flex; align-items:center; gap:8px; }
+  #range { font-weight:600; font-size:14px; min-width:150px; text-align:center; color:var(--muted); }
+  .stats { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .chip { display:inline-flex; align-items:center; gap:7px; background:var(--chip); border-radius:10px; padding:7px 12px; font-size:13.5px; font-weight:600; }
+  .chip i { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .chip .c-p { background:#f5b400; } .chip .c-a { background:var(--ok); } .chip .c-b { background:#98a4b3; }
+  .chip b { font-family:var(--display); font-size:16px; }
 
-  @media (prefers-reduced-motion:reduce) {
-    *, *::before, *::after { animation:none !important; transition:none !important; }
-    .tick svg { stroke-dashoffset:0; }
+  /* day tabs (small screens) */
+  #tabs { display:flex; gap:8px; overflow-x:auto; padding:7px 4px 8px; margin:10px -4px 0; scrollbar-width:none; scroll-snap-type:x proximity; }
+  #tabs::-webkit-scrollbar { display:none; }
+  .tab { flex:0 0 66px; scroll-snap-align:start; border:0; border-radius:12px; padding:9px 4px; background:var(--chip); color:var(--ink); text-align:center; position:relative; transition:transform .15s, box-shadow .15s; }
+  .tab .dn { display:block; font-size:11.5px; font-weight:600; color:var(--muted); }
+  .tab .dd { display:block; font-family:var(--display); font-weight:700; font-size:22px; line-height:1.1; margin-top:1px; letter-spacing:-.02em; }
+  .tab[aria-pressed="true"] { background:#fff; box-shadow:0 0 0 2px var(--blue); transform:translateY(-2px); }
+  .tab .np { position:absolute; top:-6px; right:-3px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:#f5b400; color:#3d2a00; font-size:12px; font-weight:700; display:grid; place-items:center; box-shadow:0 0 0 2px #fff; }
+
+  /* week grid (wide screens) */
+  main { padding:22px 0 48px; }
+  #grid { display:grid; grid-template-columns:62px repeat(7,minmax(150px,1fr)); gap:8px; }
+  .dh { padding:8px 6px; text-align:center; border-radius:10px; background:var(--surface); box-shadow:var(--ring); display:flex; flex-direction:column; }
+  .dh b { font-family:var(--display); font-size:15px; letter-spacing:-.01em; }
+  .dh span { font-size:12.5px; color:var(--muted); }
+  .dh.today { background:var(--blue); color:#fff; box-shadow:none; }
+  .dh.today span { color:#d6e6ff; }
+  .tl { font-weight:600; font-size:13px; color:var(--muted); padding:12px 4px 0 0; text-align:right; }
+
+  /* list (small screens) */
+  #list { display:none; }
+  .lrow { display:grid; grid-template-columns:54px 1fr; gap:8px; margin-bottom:8px; }
+
+  /* cells + cards */
+  .cell { min-height:96px; }
+  .cell.past { opacity:.55; }
+  .empty { width:100%; height:100%; min-height:96px; border:1.5px dashed #cdd5de; border-radius:12px; background:transparent; color:var(--muted); font-size:13px; font-weight:600; }
+  .empty:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-soft); }
+  .card { border-radius:12px; padding:10px 12px 11px; border-left:4px solid; background:var(--surface); box-shadow:var(--ring); height:100%; }
+  .card.Pending { border-color:#f5b400; background:#fff7dd; }
+  .card.Approved { border-color:var(--ok); background:#e7f6ee; }
+  .card.Disabled { border-color:#98a4b3; background:#eef0f3; }
+  .card .nm { font-weight:700; word-break:break-word; }
+  .card .nm.none { color:var(--muted); font-style:italic; font-weight:600; }
+  .meta { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:5px; }
+  .meta a { font-size:13px; font-weight:600; color:var(--blue); text-decoration:none; background:rgba(255,255,255,.8); border-radius:8px; padding:3px 8px; }
+  .meta a:hover { background:#fff; text-decoration:underline; }
+  .badge { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:2px 8px; border-radius:20px; background:rgba(11,53,88,.08); }
+  .acts { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+  .acts button { border:0; border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:600; }
+  .b-ap { background:var(--ok); color:#fff; } .b-ap:hover { background:#0f8449; }
+  .b-ca { background:#fff; color:var(--ink); box-shadow:var(--ring); } .b-ca:hover { background:#f1f3f6; }
+  .b-di { background:#fde8ea; color:#b42318; } .b-di:hover { background:#fbd5d9; }
+
+  @media (max-width:899px) {
+    #grid { display:none; }
+    #list { display:block; }
+    .row2 h1 { width:100%; }
   }
+  @media (min-width:900px) {
+    #tabs { display:none; }
+    main { overflow-x:auto; }
+    #grid { min-width:1130px; }
+  }
+
+  /* dialog + toast */
+  dialog { border:0; padding:0; border-radius:16px; width:min(400px,calc(100% - 32px)); background:var(--surface); color:var(--ink); box-shadow:0 24px 60px rgba(11,53,88,.28); }
+  dialog[open] { animation:pop .22s cubic-bezier(.2,.9,.3,1.2); }
+  dialog::backdrop { background:rgba(11,53,88,.45); backdrop-filter:blur(3px); }
+  @keyframes pop { from { opacity:0; transform:scale(.94) translateY(8px); } }
+  .cbox { padding:24px 22px 22px; }
+  .cbox h2 { margin:0 0 8px; font-family:var(--display); font-size:22px; letter-spacing:-.02em; }
+  .cbox p { margin:0 0 20px; color:var(--muted); }
+  .cbtns { display:flex; gap:10px; }
+  .cbtns .btn { flex:1; padding:13px 10px; }
+  .btn.danger { background:#d92d20; color:#fff; } .btn.danger:hover { background:#b42318; }
+  #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s; z-index:20; max-width:calc(100% - 32px); }
+  #toast.show { opacity:1; }
+  @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
 </style>
 </head>
 <body>
 
-<header class="hero">
-  <div class="wrap">
+<div id="loginPage" class="login-page">
+  <form id="login" class="login">
     <p class="brand">Hen's Bone Setting</p>
-    <h1>Buat janji temu</h1>
-    <div id="days" role="group" aria-label="Pilih hari"></div>
-  </div>
-</header>
+    <h1>Admin</h1>
+    <label for="pw">Password</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <p id="lerr" role="alert"></p>
+    <button type="submit" class="btn primary" id="lbtn">Sign in</button>
+  </form>
+</div>
 
-<main class="wrap">
-  <div class="head">
-    <h2 id="dayTitle">&nbsp;</h2>
-    <span id="dayCount"></span>
-  </div>
-  <div class="legend" aria-hidden="true">
-    <span><i class="l-free"></i>Tersedia</span>
-    <span><i class="l-taken"></i>Tidak tersedia</span>
-  </div>
-  <div id="slots" aria-live="polite"></div>
-</main>
-
-<footer class="foot">Hens Bone Setting, Hub : +62811 2345 678</footer>
-
-<dialog id="dlg" aria-labelledby="dTitle">
-  <div id="formView">
-    <div class="ticket">
-      <button type="button" class="x" id="close" aria-label="Tutup">&times;</button>
-      <p class="when" id="dWhen"></p>
-      <h2 id="dTitle"></h2>
+<div id="app" hidden>
+  <header class="hero">
+    <div class="wrap">
+      <div class="top">
+        <b>Hen's Bone Setting <small>Admin</small></b>
+        <button class="pill" id="logout" type="button">Log out</button>
+      </div>
+      <div class="row2">
+        <h1>Appointments</h1>
+        <div class="nav">
+          <button class="pill" id="prev" type="button" aria-label="Previous week">‹</button>
+          <span id="range"></span>
+          <button class="pill" id="next" type="button" aria-label="Next week">›</button>
+          <button class="pill" id="todayBtn" type="button">This week</button>
+        </div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div id="tabs" role="group" aria-label="Choose day"></div>
     </div>
-    <form id="form" novalidate>
-      <p class="err" id="formErr" role="alert"></p>
-      <div class="field">
-        <label for="name">Nama</label>
-        <input id="name" name="name" autocomplete="name" maxlength="80" placeholder="Nama lengkap Anda" required>
-        <p class="err" id="nameErr"></p>
-      </div>
-      <div class="field">
-        <label for="phone">Nomor Telepon</label>
-        <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="+62 812 3456 7890" required>
-        <p class="err" id="phoneErr"></p>
-      </div>
-      <button type="submit" class="btn primary" id="save">Simpan</button>
-    </form>
-  </div>
-  <div id="doneView" class="done" hidden>
-    <div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
-    <h2>Berhasil</h2>
-    <p class="sum" id="doneDate"></p>
-    <p class="jam" id="doneTime"></p>
-    <a class="addr" id="addr" target="_blank" rel="noopener">Klik disini untuk melihat alamat kami</a>
-    <button type="button" class="btn primary" id="done">Selesai</button>
-  </div>
-</dialog>
+  </header>
+  <main class="wrap">
+    <div id="grid"></div>
+    <div id="list"></div>
+  </main>
+</div>
 
-<dialog id="dup" aria-labelledby="dupTitle">
-  <div class="dupbox">
-    <h2 id="dupTitle">Sudah ada janji temu</h2>
-    <p id="dupMsg"></p>
-    <div class="dupbtns">
-      <button type="button" class="btn ghost" id="dupNo">Tidak</button>
-      <button type="button" class="btn primary" id="dupYes">Ya, ubah</button>
+<dialog id="cfm" aria-labelledby="cTitle">
+  <div class="cbox">
+    <h2 id="cTitle">Cancel appointment?</h2>
+    <p id="cMsg"></p>
+    <div class="cbtns">
+      <button type="button" class="btn ghost" id="cNo">Keep it</button>
+      <button type="button" class="btn danger" id="cYes">Cancel it</button>
     </div>
   </div>
 </dialog>
+<div id="toast"></div>
 
 <script src="config.js"></script>
 <script>
 const $ = s => document.querySelector(s);
-const dlg = $('#dlg');
-const LOCALE = 'id-ID';
-let cfg = null, taken = new Set(), selDate = null, picked = null;
+const mq = window.matchMedia('(min-width:900px)');
+let token = '', cfg = null, weekStart = '', rows = [], selDay = '';
 
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e[k] = v;
+  }
+  kids.flat().filter(Boolean).forEach(c => e.append(c));
+  return e;
+}
 function parts(ymd) { return ymd.split('-').map(Number); }
 function addDays(ymd, n) { const [y, m, d] = parts(ymd); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); }
 function localDate(ymd) { const [y, m, d] = parts(ymd); return new Date(y, m - 1, d); }
-function endTime(t, mins) {
-  const [h, m] = t.split(':').map(Number), x = h * 60 + m + mins;
-  return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0');
+function md(ymd) { return localDate(ymd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+function dow(ymd) { return localDate(ymd).toLocaleDateString('en-US', { weekday: 'short' }); }
+function longDate(ymd) { return localDate(ymd).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
+function waLink(phone) {
+  let d = String(phone).replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('0')) d = '62' + d.slice(1);
+  return 'https://wa.me/' + d;
 }
-function range(t) { return t + ' - ' + endTime(t, cfg.slotMinutes); }
-function fmt(ymd, opts) { return localDate(ymd).toLocaleDateString(LOCALE, opts); }
-function dayLabel(ymd) { return fmt(ymd, { weekday: 'long', day: 'numeric', month: 'long' }); }
-function fullDate(ymd) { return fmt(ymd, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
-function isFree(date, t) { const k = date + ' ' + t; return !taken.has(k) && k > cfg.now; }
-function openCount(date) { return cfg.times.filter(t => isFree(date, t)).length; }
-function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-function addressUrl() {
-  if (typeof ADDRESS_URL !== 'undefined' && ADDRESS_URL && !ADDRESS_URL.startsWith('PASTE')) return ADDRESS_URL;
-  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent("Hen's Bone Setting");
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.id); toast.id = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-/* ---- existing appointment (this device) ---- */
-const STORE = 'hbs_booking';
-function saveMine(b) { try { localStorage.setItem(STORE, JSON.stringify(b)); } catch (e) {} }
-function getMine() {
-  try {
-    const b = JSON.parse(localStorage.getItem(STORE) || 'null');
-    if (b && b.date && b.time && (b.date + ' ' + b.time) > cfg.now) return b;
-  } catch (e) {}
-  return null;
+/* ---- api: password is sent only by login(); afterwards a short-lived token is used ---- */
+async function api(body) {
+  const r = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ ...body, token })
+  });
+  return r.json();
 }
-const dup = $('#dup');
-let pending = null;
-function askChange(date, time) {
-  const m = getMine();
-  pending = { date, time, old: m };
-  $('#dupMsg').textContent = 'Anda sudah memiliki janji temu pada ' + fullDate(m.date) + ', pukul ' + range(m.time) + '. Ingin mengubah waktu janji temu?';
-  dup.showModal();
-}
-function closeDup() { if (dup.open) dup.close(); }
-dup.addEventListener('click', e => { if (e.target === dup) closeDup(); });
-$('#dupNo').onclick = closeDup;
-$('#dupYes').onclick = () => {
-  const p = pending; closeDup();
-  if (p) openDialog(p.date, p.time, p.old);
-};
-
-function showSkeleton() {
-  const s = $('#slots'); s.replaceChildren();
-  for (let i = 0; i < 8; i++) s.append(el('div', 'skel'));
-}
-function showNote(msg, retry) {
-  const s = $('#slots'); s.replaceChildren();
-  const n = el('div', 'note', msg);
-  if (retry) { const b = el('button', 'btn primary', 'Coba lagi'); b.type = 'button'; b.onclick = () => { showSkeleton(); load(); }; n.append(document.createElement('br'), b); }
-  s.append(n);
-}
+function expired(e) { return /session|password/i.test((e && e.message) || ''); }
 
 async function load() {
-  if (!API_URL || API_URL.startsWith('PASTE')) { showNote('Isi API_URL di config.js terlebih dahulu.'); return; }
-  try {
-    const r = await fetch(API_URL + '?action=slots');
-    const d = await r.json();
-    if (!d.ok) throw new Error(d.error);
-    cfg = d.config;
-    taken = new Set(d.taken.map(t => t.date + ' ' + t.time));
-    if (!selDate || selDate < cfg.today) selDate = cfg.today;
-    render();
-  } catch (e) {
-    if (!cfg) showNote('Jadwal gagal dimuat. Periksa koneksi internet Anda.', true);
-  }
+  const r = await api({ action: 'admin_list', from: weekStart });
+  if (!r.ok) throw new Error(r.error);
+  cfg = r.config; weekStart = r.from; rows = r.rows;
+  const week = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  if (!week.includes(selDay)) selDay = week.includes(cfg.today) ? cfg.today : weekStart;
+  render();
+}
+function safeLoad() {
+  return load().catch(e => { if (expired(e)) logout(); else toast(e.message || 'Error'); });
 }
 
+/* ---- render ---- */
 function render() {
-  const days = $('#days'); days.replaceChildren();
-  for (let i = 0; i < cfg.days; i++) {
-    const ymd = addDays(cfg.today, i), n = openCount(ymd);
-    const b = el('button', 'day ' + (n === 0 ? 'none' : n <= 2 ? 'low' : 'ok'));
-    b.type = 'button';
-    b.setAttribute('aria-pressed', ymd === selDate);
-    b.setAttribute('aria-label', fullDate(ymd) + ', ' + n + ' jam tersedia');
-    b.append(el('span', 'dn', i === 0 ? 'Hari ini' : fmt(ymd, { weekday: 'short' })),
-             el('span', 'dd', localDate(ymd).getDate()),
-             el('span', 'dc', n ? n + ' kosong' : 'Penuh'));
-    b.onclick = () => { selDate = ymd; render(); };
-    days.append(b);
-  }
-  $('#dayTitle').textContent = fullDate(selDate);
-  const n = openCount(selDate);
-  $('#dayCount').textContent = n ? n + ' dari ' + cfg.times.length + ' jam tersedia' : 'Semua jam sudah terisi';
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  $('#range').textContent = md(weekStart) + ' – ' + md(days[6]) + ', ' + localDate(days[6]).getFullYear();
 
-  const list = $('#slots'); list.replaceChildren();
-  cfg.times.forEach(t => {
-    const free = isFree(selDate, t);
-    const b = el('button', 'slot ' + (free ? 'free' : 'taken'));
-    b.type = 'button';
-    b.disabled = !free;
-    b.append(el('small', null, free ? 'Tersedia' : 'Tidak tersedia'), el('b', null, range(t)));
-    b.setAttribute('aria-label', range(t) + (free ? ', tersedia' : ', tidak tersedia'));
-    if (free) b.onclick = () => getMine() ? askChange(selDate, t) : openDialog(selDate, t);
-    list.append(b);
+  const count = s => rows.filter(r => r.status === s).length;
+  const st = $('#stats'); st.replaceChildren(
+    h('span', { class: 'chip' }, h('i', { class: 'c-p' }), h('b', { text: count('Pending') }), 'pending'),
+    h('span', { class: 'chip' }, h('i', { class: 'c-a' }), h('b', { text: count('Approved') }), 'approved'),
+    h('span', { class: 'chip' }, h('i', { class: 'c-b' }), h('b', { text: count('Disabled') }), 'blocked'));
+
+  const byKey = new Map(rows.map(r => [r.date + ' ' + r.time, r]));
+
+  const tabs = $('#tabs'); tabs.replaceChildren();
+  days.forEach(d => {
+    const np = rows.filter(r => r.date === d && r.status === 'Pending').length;
+    const b = h('button', { class: 'tab', type: 'button', onclick: () => { selDay = d; render(); } },
+      h('span', { class: 'dn', text: d === cfg.today ? 'Today' : dow(d) }),
+      h('span', { class: 'dd', text: localDate(d).getDate() }),
+      np ? h('span', { class: 'np', text: np }) : null);
+    b.setAttribute('aria-pressed', d === selDay);
+    tabs.append(b);
   });
-}
 
-/* ---- dialog ---- */
-function setErr(id, msg) {
-  $('#' + id).textContent = msg || '';
-  const input = { nameErr: '#name', phoneErr: '#phone' }[id];
-  if (input) $(input).setAttribute('aria-invalid', msg ? 'true' : 'false');
-}
-function openDialog(date, time, old) {
-  picked = { date, time, old: old || null };
-  $('#dWhen').textContent = fullDate(date);
-  $('#dTitle').textContent = range(time);
-  $('#form').reset();
-  if (old && old.name) { $('#name').value = old.name; $('#phone').value = old.phone || ''; }
-  ['nameErr', 'phoneErr', 'formErr'].forEach(i => setErr(i, ''));
-  $('#formView').hidden = false; $('#doneView').hidden = true;
-  $('#save').disabled = false; $('#save').textContent = 'Simpan';
-  dlg.showModal();
-  $('#name').focus();
-}
-function closeDialog() { if (dlg.open) dlg.close(); }
-dlg.addEventListener('close', () => { picked = null; });
-dlg.addEventListener('click', e => { if (e.target === dlg) closeDialog(); }); // backdrop
-$('#close').onclick = closeDialog;
-$('#done').onclick = closeDialog;
-
-$('#form').addEventListener('submit', async e => {
-  e.preventDefault();
-  if (!picked) return;
-  const name = $('#name').value.trim(), phone = $('#phone').value.trim();
-  setErr('formErr', '');
-  const nameBad = name.length < 2 ? 'Masukkan nama Anda.' : '';
-  const phoneBad = /^[0-9+\-\s()]{7,20}$/.test(phone) ? '' : 'Masukkan nomor telepon yang valid, contoh +62 812 3456 7890.';
-  setErr('nameErr', nameBad); setErr('phoneErr', phoneBad);
-  if (nameBad) return $('#name').focus();
-  if (phoneBad) return $('#phone').focus();
-
-  const save = $('#save'); save.disabled = true; save.textContent = 'Menyimpan…';
-  try {
-    const r = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(picked.old
-        ? { action: 'reschedule', oldDate: picked.old.date, oldTime: picked.old.time, date: picked.date, time: picked.time, name, phone }
-        : { action: 'book', date: picked.date, time: picked.time, name, phone })
+  const g = $('#grid'); g.replaceChildren();
+  const list = $('#list'); list.replaceChildren();
+  if (mq.matches) {
+    g.append(h('div'));
+    days.forEach(d => g.append(h('div', { class: 'dh' + (d === cfg.today ? ' today' : '') },
+      h('b', { text: dow(d) }), h('span', { text: md(d) }))));
+    cfg.times.forEach(t => {
+      g.append(h('div', { class: 'tl', text: t }));
+      days.forEach(d => g.append(cell(d, t, byKey.get(d + ' ' + t))));
     });
-    const d = await r.json();
-    if (!d.ok) {
-      if (/duplicate|already|exist/i.test(d.error || '') && d.existing && !picked.old) {
-        saveMine({ date: d.existing.date, time: d.existing.time, name, phone });
-        const t = picked;
-        await load();
-        closeDialog();
-        askChange(t.date, t.time);
-        return;
-      }
-      const gone = /taken|past/i.test(d.error || '');
-      setErr('formErr', gone ? 'Maaf, jam ini sudah tidak tersedia. Silakan pilih jam lain.' : 'Gagal menyimpan. Silakan coba lagi.');
-      save.disabled = false; save.textContent = 'Simpan';
-      await load();
-      if (gone) setTimeout(closeDialog, 2200);
-      return;
-    }
-    saveMine({ date: picked.date, time: picked.time, name, phone });
-    $('#doneDate').textContent = fullDate(picked.date);
-    $('#doneTime').textContent = 'Pukul: ' + range(picked.time);
-    $('#addr').href = addressUrl();
-    $('#formView').hidden = true; $('#doneView').hidden = false;
-    $('#done').focus();
-    load();
-  } catch (err) {
-    setErr('formErr', 'Tidak ada koneksi. Periksa internet Anda lalu tekan Simpan lagi.');
-    save.disabled = false; save.textContent = 'Simpan';
+  } else {
+    list.append(h('p', { text: longDate(selDay), style: 'margin:0 0 12px;font-family:var(--display);font-weight:700;font-size:20px;' }));
+    cfg.times.forEach(t => list.append(h('div', { class: 'lrow' },
+      h('div', { class: 'tl', text: t }), cell(selDay, t, byKey.get(selDay + ' ' + t)))));
   }
-});
+}
 
-showSkeleton();
-load();
-setInterval(() => { if (!dlg.open) load(); }, 30000);
+function cell(d, t, r) {
+  const past = (d + ' ' + t) <= cfg.now;
+  const c = h('div', { class: 'cell' + (past ? ' past' : '') });
+  if (!r) {
+    c.append(h('button', { class: 'empty', type: 'button', text: 'Open · Disable',
+      onclick: () => act({ action: 'disable', date: d, time: t }, 'Slot disabled.') }));
+    return c;
+  }
+  const named = !!r.name;
+  const acts = h('div', { class: 'acts' });
+  if (named && r.status !== 'Approved') acts.append(h('button', { class: 'b-ap', type: 'button', text: 'Approve',
+    onclick: () => act({ action: 'update', id: r.id, status: 'Approved' }, 'Approved.') }));
+  acts.append(h('button', { class: 'b-ca', type: 'button', text: named ? 'Cancel' : 'Unblock',
+    onclick: () => {
+      const go = () => act({ action: 'update', id: r.id, status: 'Cancelled' }, 'Slot available again.');
+      if (!named) return go();
+      confirmBox('Cancel appointment?', r.name + ' · ' + longDate(d) + ', ' + t + '. The slot becomes available again.', go);
+    } }));
+  if (named && r.status !== 'Disabled') acts.append(h('button', { class: 'b-di', type: 'button', text: 'Disable',
+    onclick: () => act({ action: 'update', id: r.id, status: 'Disabled' }, 'Slot disabled.') }));
+  const meta = h('div', { class: 'meta' },
+    r.phone ? h('a', { href: 'tel:' + r.phone, text: r.phone }) : null,
+    r.phone ? h('a', { href: waLink(r.phone), target: '_blank', rel: 'noopener', text: 'WhatsApp' }) : null,
+    h('span', { class: 'badge', text: r.status }));
+  c.append(h('div', { class: 'card ' + r.status },
+    h('div', { class: 'nm' + (named ? '' : ' none'), text: named ? r.name : 'Blocked slot' }),
+    meta, acts));
+  return c;
+}
+
+/* ---- confirm dialog ---- */
+const cfm = $('#cfm');
+let onYes = null;
+function confirmBox(title, msg, yes) {
+  $('#cTitle').textContent = title; $('#cMsg').textContent = msg; onYes = yes; cfm.showModal();
+}
+$('#cNo').onclick = () => cfm.close();
+$('#cYes').onclick = () => { const f = onYes; cfm.close(); if (f) f(); };
+cfm.addEventListener('click', e => { if (e.target === cfm) cfm.close(); });
+
+async function act(payload, okMsg) {
+  document.body.classList.add('busy');
+  try {
+    const r = await api(payload);
+    if (!r.ok) throw new Error(r.error);
+    await load();
+    toast(okMsg);
+  } catch (e) {
+    if (expired(e)) { logout(); return; }
+    toast(e.message || 'Error'); try { await load(); } catch (_) {}
+  } finally {
+    document.body.classList.remove('busy');
+  }
+}
+
+/* ---- session ---- */
+function showApp() { $('#loginPage').hidden = true; $('#app').hidden = false; }
+function logout() { sessionStorage.removeItem('adminTok'); token = ''; location.reload(); }
+
+async function signIn(pw) {
+  const r = await api({ action: 'login', password: pw });
+  if (!r.ok) throw new Error(r.error);
+  token = r.token;
+  await load();
+  sessionStorage.setItem('adminTok', token);
+  showApp();
+}
+
+$('#login').addEventListener('submit', async e => {
+  e.preventDefault();
+  const pw = $('#pw'), btn = $('#lbtn');
+  $('#lerr').textContent = ''; btn.disabled = true; btn.textContent = 'Signing in…';
+  try { await signIn(pw.value); }
+  catch (err) { $('#lerr').textContent = err.message || 'Login failed.'; token = ''; }
+  finally { pw.value = ''; btn.disabled = false; btn.textContent = 'Sign in'; }
+});
+$('#prev').onclick = () => { weekStart = addDays(weekStart, -7); safeLoad(); };
+$('#next').onclick = () => { weekStart = addDays(weekStart, 7); safeLoad(); };
+$('#todayBtn').onclick = () => { weekStart = ''; selDay = ''; safeLoad(); };
+$('#logout').onclick = logout;
+mq.addEventListener('change', () => { if (cfg) render(); });
+
+if (!API_URL || API_URL.startsWith('PASTE')) {
+  $('#lerr').textContent = 'Set API_URL in config.js first.';
+} else {
+  const saved = sessionStorage.getItem('adminTok');
+  if (saved) {
+    token = saved;
+    load().then(showApp).catch(() => { sessionStorage.removeItem('adminTok'); token = ''; });
+  }
+}
+setInterval(() => { if (!$('#app').hidden && !document.body.classList.contains('busy') && !cfm.open) safeLoad(); }, 30000);
 </script>
 </body>
 </html>
