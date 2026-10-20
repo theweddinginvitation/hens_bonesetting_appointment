@@ -72,7 +72,8 @@
   .tab .np { position:absolute; top:-6px; right:-3px; min-width:20px; height:20px; padding:0 5px; border-radius:10px; background:#f5b400; color:#3d2a00; font-size:12px; font-weight:700; display:grid; place-items:center; box-shadow:0 0 0 2px #fff; }
 
   /* week grid (wide screens) */
-  main { padding:22px 0 48px; }
+  main.wrap { padding-top:22px; padding-bottom:16px; }
+  .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px; }
   #grid { display:grid; grid-template-columns:62px repeat(7,minmax(150px,1fr)); gap:8px; }
   .dh { padding:8px 6px; text-align:center; border-radius:10px; background:var(--surface); box-shadow:var(--ring); display:flex; flex-direction:column; }
   .dh b { font-family:var(--display); font-size:15px; letter-spacing:-.01em; }
@@ -159,7 +160,7 @@
           <button class="pill" id="prev" type="button" aria-label="Previous week">‹</button>
           <span id="range"></span>
           <button class="pill" id="next" type="button" aria-label="Next week">›</button>
-          <button class="pill" id="todayBtn" type="button">This week</button>
+          <button class="pill" id="todayBtn" type="button">Today</button>
         </div>
       </div>
       <div class="stats" id="stats"></div>
@@ -170,6 +171,7 @@
     <div id="grid"></div>
     <div id="list"></div>
   </main>
+  <footer class="foot">Hens Bone Setting, Hub : +62811 2345 678</footer>
 </div>
 
 <dialog id="cfm" aria-labelledby="cTitle">
