@@ -26,20 +26,20 @@
   .hero { background:var(--maroon); color:#fff; padding:26px 0 22px; border-radius:0 0 28px 28px; }
   .hero .brand { margin:0 0 14px; color:#fff; font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:-.005em; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,.22); }
   .hero h1 { margin:0 0 20px; font-family:var(--display); font-weight:800; font-size:clamp(30px,7vw,42px); line-height:1.05; letter-spacing:-.02em; }
-  #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:4px; scrollbar-width:none; }
+  #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; padding:5px 4px 8px; margin:0 -4px; scrollbar-width:none; }
   #days::-webkit-scrollbar { display:none; }
-  .day { flex:1 0 62px; scroll-snap-align:start; border:0; border-radius:16px; padding:10px 4px 9px; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; text-align:center; transition:background .15s, transform .15s; }
-  .day:hover { background:rgba(255,255,255,.2); }
-  .day .dn { display:block; font-size:12px; font-weight:600; color:#f0cfd8; }
+  .day { flex:0 0 70px; min-height:72px; scroll-snap-align:start; border:0; border-radius:14px; padding:9px 4px; background:var(--green); color:#fff; cursor:pointer; text-align:center; transition:filter .15s, transform .15s, box-shadow .15s; }
+  .day:hover { filter:brightness(1.07); }
+  .day .dn, .day .dc { display:block; font-size:11.5px; font-weight:600; opacity:.9; }
   .day .dd { display:block; font-family:var(--display); font-weight:800; font-size:26px; line-height:1.1; margin:1px 0 2px; }
-  .day .dc { display:block; font-size:11px; font-weight:600; color:#f0cfd8; }
-  .day.none { opacity:.6; }
-  .day[aria-pressed="true"] { background:#fff; color:var(--maroon); transform:translateY(-2px); }
-  .day[aria-pressed="true"] .dn, .day[aria-pressed="true"] .dc { color:var(--muted); }
+  .day.ok   { background:var(--green); color:#fff; }
+  .day.low  { background:#f5a524; color:#3d2600; }
+  .day.none { background:#f3d9df; color:var(--maroon); }
+  .day[aria-pressed="true"] { transform:translateY(-2px); box-shadow:0 0 0 3px #fff; }
 
   /* time cards */
-  main { padding:24px 0 56px; }
-  .head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+  main { padding:24px 0 16px; }
+  .head { padding-top:8px; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
   .head h2 { margin:0; font-family:var(--display); font-size:22px; font-weight:700; letter-spacing:-.01em; }
   .head span { color:var(--muted); font-size:14px; font-weight:500; }
   .legend { display:flex; gap:18px; font-size:13px; color:var(--muted); margin:0 0 16px; }
@@ -59,6 +59,8 @@
   .slot.taken { background:var(--maroon); cursor:not-allowed;
     background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 6px,transparent 6px 12px); }
   .slot.taken b { opacity:.85; }
+
+  .foot { background:var(--maroon); color:#fff; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px; border-radius:28px 28px 0 0; }
 
   .skel { height:82px; border-radius:16px; background:linear-gradient(90deg,#e9e5e8,#f3f1f3,#e9e5e8); background-size:200% 100%; animation:sh 1.2s linear infinite; }
   @keyframes sh { to { background-position:-200% 0; } }
@@ -129,6 +131,8 @@
   </div>
   <div id="slots" aria-live="polite"></div>
 </main>
+
+<footer class="foot">Hens Bone Setting, Hub : +62811 2345 678</footer>
 
 <dialog id="dlg" aria-labelledby="dTitle">
   <div id="formView">
@@ -218,7 +222,7 @@ function render() {
   const days = $('#days'); days.replaceChildren();
   for (let i = 0; i < cfg.days; i++) {
     const ymd = addDays(cfg.today, i), n = openCount(ymd);
-    const b = el('button', 'day' + (n ? '' : ' none'));
+    const b = el('button', 'day ' + (n === 0 ? 'none' : n <= 2 ? 'low' : 'ok'));
     b.type = 'button';
     b.setAttribute('aria-pressed', ymd === selDate);
     b.setAttribute('aria-label', fullDate(ymd) + ', ' + n + ' jam tersedia');
@@ -228,7 +232,7 @@ function render() {
     b.onclick = () => { selDate = ymd; render(); };
     days.append(b);
   }
-  $('#dayTitle').textContent = dayLabel(selDate);
+  $('#dayTitle').textContent = fullDate(selDate);
   const n = openCount(selDate);
   $('#dayCount').textContent = n ? n + ' dari ' + cfg.times.length + ' jam tersedia' : 'Semua jam sudah terisi';
 
