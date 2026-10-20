@@ -57,7 +57,8 @@
   .nav { display:flex; align-items:center; gap:8px; }
   #range { font-weight:600; font-size:14px; min-width:150px; text-align:center; color:var(--muted); }
   .stats { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
-  .chip { display:inline-flex; align-items:center; gap:7px; background:var(--chip); border-radius:10px; padding:7px 12px; font-size:13.5px; font-weight:600; }
+  .chip { display:inline-flex; align-items:center; gap:7px; background:var(--chip); color:var(--ink); border:0; border-radius:10px; padding:7px 12px; font-size:13.5px; font-weight:600; cursor:pointer; }
+  .chip:hover { background:#e6eaef; }
   .chip i { width:9px; height:9px; border-radius:50%; display:inline-block; }
   .chip .c-p { background:#f5b400; } .chip .c-a { background:var(--ok); } .chip .c-b { background:#98a4b3; }
   .chip b { font-family:var(--display); font-size:16px; }
@@ -91,6 +92,12 @@
   .cell.past { opacity:.55; }
   .empty { width:100%; height:100%; min-height:96px; border:1.5px dashed #cdd5de; border-radius:12px; background:transparent; color:var(--muted); font-size:13px; font-weight:600; }
   .empty:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-soft); }
+  .empty:disabled, .empty:disabled:hover { cursor:not-allowed; border-color:#cdd5de; color:var(--muted); background:transparent; }
+  .card.cardbtn { display:block; width:100%; text-align:left; font:inherit; color:var(--ink); border:0; border-left:4px solid #98a4b3; cursor:pointer; }
+  .card.cardbtn:hover { background:#e3e7ec; }
+  .card.cardbtn:disabled { cursor:not-allowed; }
+  .hint { font-size:12.5px; font-weight:600; color:var(--muted); margin-top:4px; }
+  .acts button:disabled { cursor:not-allowed; opacity:.5; }
   .card { border-radius:12px; padding:10px 12px 11px; border-left:4px solid; background:var(--surface); box-shadow:var(--ring); height:100%; }
   .card.Pending { border-color:#f5b400; background:#fff7dd; }
   .card.Approved { border-color:var(--ok); background:#e7f6ee; }
@@ -128,6 +135,15 @@
   .cbox p { margin:0 0 20px; color:var(--muted); }
   .cbtns { display:flex; gap:10px; }
   .cbtns .btn { flex:1; padding:13px 10px; }
+  .cbox p.sub { margin:0 0 10px; font-size:13.5px; }
+  .rlist { max-height:50vh; overflow:auto; margin-bottom:16px; }
+  .rrow { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 2px; border-top:1px solid var(--line); cursor:pointer; }
+  .rrow:hover { background:var(--paper); }
+  .rrow .when { font-size:12.5px; font-weight:600; color:var(--muted); }
+  .rrow .who { font-weight:700; word-break:break-word; }
+  .rrow .ph { font-size:13px; color:var(--muted); }
+  .rrow button { border:0; border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:600; background:var(--ok); color:#fff; flex:none; }
+  .rempty { padding:14px 2px; color:var(--muted); border-top:1px solid var(--line); }
   .btn.danger { background:#d92d20; color:#fff; } .btn.danger:hover { background:#b42318; }
   #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s; z-index:20; max-width:calc(100% - 32px); }
   #toast.show { opacity:1; }
@@ -173,6 +189,15 @@
   </main>
   <footer class="foot">Hens Bone Setting, Hub : +62811 2345 678</footer>
 </div>
+
+<dialog id="rec" aria-labelledby="rTitle">
+  <div class="cbox">
+    <h2 id="rTitle"></h2>
+    <p class="sub" id="rSub"></p>
+    <div class="rlist" id="rList"></div>
+    <div class="cbtns"><button type="button" class="btn ghost" id="rClose">Close</button></div>
+  </div>
+</dialog>
 
 <dialog id="cfm" aria-labelledby="cTitle">
   <div class="cbox">
@@ -250,9 +275,8 @@ function render() {
 
   const count = s => rows.filter(r => r.status === s).length;
   const st = $('#stats'); st.replaceChildren(
-    h('span', { class: 'chip' }, h('i', { class: 'c-p' }), h('b', { text: count('Pending') }), 'pending'),
-    h('span', { class: 'chip' }, h('i', { class: 'c-a' }), h('b', { text: count('Approved') }), 'approved'),
-    h('span', { class: 'chip' }, h('i', { class: 'c-b' }), h('b', { text: count('Disabled') }), 'blocked'));
+    h('button', { class: 'chip', type: 'button', onclick: () => showRecords('Pending') }, h('i', { class: 'c-p' }), h('b', { text: count('Pending') }), 'pending'),
+    h('button', { class: 'chip', type: 'button', onclick: () => showRecords('Approved') }, h('i', { class: 'c-a' }), h('b', { text: count('Approved') }), 'approved'));
 
   const byKey = new Map(rows.map(r => [r.date + ' ' + r.time, r]));
 
@@ -288,31 +312,58 @@ function cell(d, t, r) {
   const past = (d + ' ' + t) <= cfg.now;
   const c = h('div', { class: 'cell' + (past ? ' past' : '') });
   if (!r) {
-    c.append(h('button', { class: 'empty', type: 'button', text: 'Open · Disable',
-      onclick: () => act({ action: 'disable', date: d, time: t }, 'Slot disabled.') }));
+    c.append(h('button', { class: 'empty', type: 'button', text: 'Click to Block', disabled: past,
+      onclick: () => act({ action: 'disable', date: d, time: t }, 'Slot blocked.') }));
     return c;
   }
   const named = !!r.name;
+  if (!named) { // blocked slot: the whole card is the unblock button
+    c.append(h('button', { class: 'card Disabled cardbtn', type: 'button', disabled: past,
+      onclick: () => act({ action: 'update', id: r.id, status: 'Cancelled' }, 'Slot unblocked.') },
+      h('div', { class: 'nm none', text: 'Blocked' }),
+      h('div', { class: 'hint', text: 'Click to Unblock' })));
+    return c;
+  }
   const acts = h('div', { class: 'acts' });
-  if (named && r.status !== 'Approved') acts.append(h('button', { class: 'b-ap', type: 'button', text: 'Approve',
+  if (r.status !== 'Approved') acts.append(h('button', { class: 'b-ap', type: 'button', text: 'Approve', disabled: past,
     onclick: () => act({ action: 'update', id: r.id, status: 'Approved' }, 'Approved.') }));
-  acts.append(h('button', { class: 'b-ca', type: 'button', text: named ? 'Cancel' : 'Unblock',
-    onclick: () => {
-      const go = () => act({ action: 'update', id: r.id, status: 'Cancelled' }, 'Slot available again.');
-      if (!named) return go();
-      confirmBox('Cancel appointment?', r.name + ' · ' + longDate(d) + ', ' + t + '. The slot becomes available again.', go);
-    } }));
-  if (named && r.status !== 'Disabled') acts.append(h('button', { class: 'b-di', type: 'button', text: 'Disable',
-    onclick: () => act({ action: 'update', id: r.id, status: 'Disabled' }, 'Slot disabled.') }));
+  acts.append(h('button', { class: 'b-ca', type: 'button', text: 'Cancel', disabled: past,
+    onclick: () => confirmBox('Cancel appointment?', r.name + ' · ' + longDate(d) + ', ' + t + '. The slot becomes available again.',
+      () => act({ action: 'update', id: r.id, status: 'Cancelled' }, 'Slot available again.')) }));
   const meta = h('div', { class: 'meta' },
     r.phone ? h('a', { href: 'tel:' + r.phone, text: r.phone }) : null,
     r.phone ? h('a', { href: waLink(r.phone), target: '_blank', rel: 'noopener', text: 'WhatsApp' }) : null,
     h('span', { class: 'badge', text: r.status }));
   c.append(h('div', { class: 'card ' + r.status },
-    h('div', { class: 'nm' + (named ? '' : ' none'), text: named ? r.name : 'Blocked slot' }),
+    h('div', { class: 'nm', text: r.name }),
     meta, acts));
   return c;
 }
+
+/* ---- records dialog (tap a counter) ---- */
+const rec = $('#rec');
+function showRecords(status) {
+  const list = rows.filter(r => r.status === status && r.name)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  $('#rTitle').textContent = (status === 'Pending' ? 'Pending' : 'Approved') + ' (' + list.length + ')';
+  $('#rSub').textContent = md(weekStart) + ' – ' + md(addDays(weekStart, 6)) + ' · tap a record to jump to it';
+  const box = $('#rList'); box.replaceChildren();
+  if (!list.length) box.append(h('div', { class: 'rempty', text: 'No ' + status.toLowerCase() + ' appointments in this range.' }));
+  list.forEach(r => {
+    const past = (r.date + ' ' + r.time) <= cfg.now;
+    const row = h('div', { class: 'rrow', onclick: () => { selDay = r.date; rec.close(); render(); } },
+      h('div', null,
+        h('div', { class: 'when', text: dow(r.date) + ', ' + md(r.date) + ' · ' + r.time }),
+        h('div', { class: 'who', text: r.name }),
+        h('div', { class: 'ph', text: r.phone })));
+    if (status === 'Pending' && !past) row.append(h('button', { type: 'button', text: 'Approve',
+      onclick: e => { e.stopPropagation(); rec.close(); act({ action: 'update', id: r.id, status: 'Approved' }, 'Approved.'); } }));
+    box.append(row);
+  });
+  rec.showModal();
+}
+$('#rClose').onclick = () => rec.close();
+rec.addEventListener('click', e => { if (e.target === rec) rec.close(); });
 
 /* ---- confirm dialog ---- */
 const cfm = $('#cfm');
@@ -375,7 +426,7 @@ if (!API_URL || API_URL.startsWith('PASTE')) {
     load().then(showApp).catch(() => { sessionStorage.removeItem('adminTok'); token = ''; });
   }
 }
-setInterval(() => { if (!$('#app').hidden && !document.body.classList.contains('busy') && !cfm.open) safeLoad(); }, 30000);
+setInterval(() => { if (!$('#app').hidden && !document.body.classList.contains('busy') && !cfm.open && !rec.open) safeLoad(); }, 30000);
 </script>
 </body>
 </html>
