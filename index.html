@@ -30,7 +30,7 @@
   .hero { background:var(--surface); color:var(--ink); padding:22px 0 14px; border-bottom:1px solid var(--line); }
   .hero .brand { margin:0 0 14px; font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; padding-bottom:12px; border-bottom:1px solid var(--line); }
   .hero h1 { margin:0 0 18px; font-family:var(--display); font-weight:800; font-size:clamp(28px,6.5vw,38px); line-height:1.1; letter-spacing:-.03em; }
-  #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; padding:5px 4px 8px; margin:0 -4px; scrollbar-width:none; }
+  #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; scroll-padding-inline:6px; padding:6px 6px 8px; margin:0 -6px; scrollbar-width:none; }
   #days::-webkit-scrollbar { display:none; }
   .day { flex:0 0 70px; min-height:72px; scroll-snap-align:start; border:0; border-radius:12px; padding:9px 4px; background:#e4f5ec; color:#0b5d37; cursor:pointer; text-align:center; transition:transform .15s, box-shadow .15s, filter .15s; }
   .day:hover { filter:brightness(.97); }
@@ -43,7 +43,7 @@
 
   /* time cards */
   main.wrap { padding-top:24px; padding-bottom:16px; }
-  .head { padding-top:8px; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+  .head { padding-top:16px; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
   .head h2 { margin:0; font-family:var(--display); font-size:20px; font-weight:700; letter-spacing:-.02em; }
   .head span { color:var(--muted); font-size:14px; font-weight:500; }
   .legend { display:flex; gap:18px; font-size:13px; color:var(--muted); margin:0 0 16px; }
