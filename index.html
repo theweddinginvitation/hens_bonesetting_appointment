@@ -22,12 +22,18 @@
   [hidden] { display:none !important; }
   html { scroll-behavior:smooth; }
   body { margin:0; font-family:var(--body); background:var(--paper); color:var(--ink); line-height:1.45; }
+  body::before { content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(60% 40% at 12% 8%, rgba(0,107,255,.20), transparent 70%),
+      radial-gradient(50% 35% at 95% 32%, rgba(23,160,93,.16), transparent 70%),
+      radial-gradient(60% 40% at 25% 95%, rgba(245,180,0,.16), transparent 70%); }
   button, input { font:inherit; }
+  button { touch-action:manipulation; }
   :focus-visible { outline:3px solid #3b82f6; outline-offset:2px; }
   .wrap { max-width:720px; margin:0 auto; padding:0 16px; }
 
   /* header: brand, title, week strip */
-  .hero { background:var(--surface); color:var(--ink); padding:22px 0 14px; border-bottom:1px solid var(--line); }
+  .hero { background:rgba(255,255,255,.66); -webkit-backdrop-filter:blur(16px) saturate(160%); backdrop-filter:blur(16px) saturate(160%); color:var(--ink); padding:22px 0 14px; border-bottom:1px solid rgba(255,255,255,.7); box-shadow:0 1px 0 rgba(34,42,53,.06); }
   .hero .brand { margin:0 0 14px; font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; padding-bottom:12px; border-bottom:1px solid var(--line); }
   .hero h1 { margin:0 0 18px; font-family:var(--display); font-weight:800; font-size:clamp(28px,6.5vw,38px); line-height:1.1; letter-spacing:-.03em; }
   #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; scroll-padding-inline:6px; padding:6px 6px 8px; margin:0 -6px; scrollbar-width:none; }
@@ -52,15 +58,19 @@
   .legend .l-taken { background:#e9ecf0; }
 
   #slots { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
-  .slot { border:1px solid transparent; border-radius:12px; padding:13px 14px 15px; text-align:left; min-height:82px; display:flex; flex-direction:column; justify-content:space-between; gap:14px; }
+  .slot { border:1px solid transparent; border-radius:14px; padding:13px 14px 15px; text-align:left; min-height:82px; display:flex; flex-direction:column; justify-content:space-between; gap:14px;
+    -webkit-backdrop-filter:blur(12px) saturate(160%); backdrop-filter:blur(12px) saturate(160%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.75), 0 2px 10px rgba(71,103,136,.08); }
+  .slot.in { animation:slotIn .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:calc(var(--i, 0) * 45ms); }
+  @keyframes slotIn { from { opacity:0; transform:translate3d(0,16px,0) scale(.96); } }
   .slot small { display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; }
   .slot small::before { content:""; width:8px; height:8px; border-radius:50%; background:currentColor; }
   .slot.taken small::before { background:transparent; border:1.5px solid currentColor; }
   .slot b { font-family:var(--display); font-size:18px; font-weight:700; line-height:1; letter-spacing:-.02em; white-space:nowrap; }
-  .slot.free { background:var(--surface); color:var(--blue); border-color:var(--blue); cursor:pointer; transition:transform .12s, box-shadow .12s, background .12s, color .12s; }
-  .slot.free:hover { background:var(--blue); color:#fff; transform:translateY(-2px); box-shadow:var(--lift); }
-  .slot.free:active { transform:translateY(0); }
-  .slot.taken { background:#eceff3; color:#98a4b3; cursor:not-allowed; }
+  .slot.free { background:rgba(255,255,255,.58); color:var(--blue); border-color:rgba(0,107,255,.45); cursor:pointer; transition:transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s cubic-bezier(.22,1,.36,1), background .2s, color .2s; }
+  @media (hover:hover) { .slot.free:hover { background:var(--blue); color:#fff; transform:translate3d(0,-2px,0); box-shadow:var(--lift); } }
+  .slot.free:active { transform:scale(.97); background:var(--blue); color:#fff; transition-duration:.08s; }
+  .slot.taken { background:rgba(226,231,238,.5); color:#98a4b3; cursor:not-allowed; }
 
   .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px; }
 
@@ -76,12 +86,12 @@
   .btn.ghost:hover { background:#e6eaef; }
 
   /* dialogs */
-  dialog { border:0; padding:0; border-radius:16px; width:min(420px,calc(100% - 32px)); max-height:calc(100% - 32px); overflow:auto; background:var(--surface); color:var(--ink); box-shadow:0 24px 60px rgba(11,53,88,.28); }
+  dialog { border:0; padding:0; border-radius:16px; width:min(420px,calc(100% - 32px)); max-height:calc(100% - 32px); overflow:auto; background:rgba(255,255,255,.78); -webkit-backdrop-filter:blur(22px) saturate(170%); backdrop-filter:blur(22px) saturate(170%); border:1px solid rgba(255,255,255,.7); color:var(--ink); box-shadow:0 24px 60px rgba(11,53,88,.28); }
   dialog[open] { animation:pop .22s cubic-bezier(.2,.9,.3,1.2); }
   dialog::backdrop { background:rgba(11,53,88,.45); backdrop-filter:blur(3px); animation:fade .2s; }
   @keyframes pop { from { opacity:0; transform:scale(.94) translateY(8px); } }
   @keyframes fade { from { opacity:0; } }
-  .ticket { background:var(--ink); color:#fff; padding:22px 22px 18px; position:relative; }
+  .ticket { background:rgba(11,53,88,.9); color:#fff; padding:22px 22px 18px; position:relative; }
   .ticket .when { margin:0; font-size:14px; color:#a9bbd0; font-weight:500; padding-right:40px; }
   .ticket h2 { margin:4px 0 0; font-family:var(--display); font-size:32px; font-weight:800; line-height:1.05; letter-spacing:-.03em; white-space:nowrap; }
   .x { position:absolute; top:12px; right:12px; width:36px; height:36px; border:0; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:20px; line-height:1; cursor:pointer; }
@@ -113,6 +123,13 @@
   .done .addr:hover { color:var(--blue-deep); }
   .done .btn { width:100%; margin-top:20px; }
 
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+    .hero { background:#fff; }
+    .slot.free { background:#fff; }
+    .slot.taken { background:#eceff3; }
+    dialog { background:#fff; }
+  }
+
   @media (prefers-reduced-motion:reduce) {
     *, *::before, *::after { animation:none !important; transition:none !important; }
     .tick svg { stroke-dashoffset:0; }
@@ -124,7 +141,7 @@
 <header class="hero">
   <div class="wrap">
     <p class="brand">Hen's Bone Setting</p>
-    <h1>Buat janji temu</h1>
+    <h1>Reservasi</h1>
     <div id="days" role="group" aria-label="Pilih hari"></div>
   </div>
 </header>
@@ -191,7 +208,7 @@
 const $ = s => document.querySelector(s);
 const dlg = $('#dlg');
 const LOCALE = 'id-ID';
-let cfg = null, taken = new Set(), selDate = null, picked = null;
+let cfg = null, taken = new Set(), selDate = null, picked = null, renderedFor = null;
 
 // 0812 3456 7890 -> +6281234567890 ; 62812... -> +62812... ; 0062... -> +62...
 function normPhone(p) {
@@ -292,14 +309,16 @@ function render() {
   const n = openCount(selDate);
   $('#dayCount').textContent = n ? n + ' dari ' + cfg.times.length + ' jam tersedia' : 'Semua jam sudah terisi';
 
+  const animate = renderedFor !== selDate; renderedFor = selDate;
   const list = $('#slots'); list.replaceChildren();
-  cfg.times.forEach(t => {
+  cfg.times.forEach((t, i) => {
     const free = isFree(selDate, t);
     const b = el('button', 'slot ' + (free ? 'free' : 'taken'));
     b.type = 'button';
     b.disabled = !free;
     b.append(el('small', null, free ? 'Tersedia' : 'Tidak tersedia'), el('b', null, range(t)));
     b.setAttribute('aria-label', range(t) + (free ? ', tersedia' : ', tidak tersedia'));
+    if (animate) { b.classList.add('in'); b.style.setProperty('--i', Math.min(i, 10)); }
     if (free) b.onclick = () => getMine() ? askChange(selDate, t) : openDialog(selDate, t);
     list.append(b);
   });
