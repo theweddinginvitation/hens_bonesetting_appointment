@@ -136,14 +136,14 @@
   .cbtns { display:flex; gap:10px; }
   .cbtns .btn { flex:1; padding:13px 10px; }
   .cbox p.sub { margin:0 0 10px; font-size:13.5px; }
-  .rlist { max-height:50vh; overflow:auto; margin-bottom:16px; }
-  .rrow { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 2px; border-top:1px solid var(--line); cursor:pointer; }
+  .rlist { max-height:50vh; overflow:auto; margin:0 -6px 16px; padding:0 6px 2px; }
+  .rrow { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; border-top:1px solid var(--line); border-radius:10px; cursor:pointer; }
   .rrow:hover { background:var(--paper); }
   .rrow .when { font-size:12.5px; font-weight:600; color:var(--muted); }
   .rrow .who { font-weight:700; word-break:break-word; }
   .rrow .ph { font-size:13px; color:var(--muted); }
   .rrow button { border:0; border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:600; background:var(--ok); color:#fff; flex:none; }
-  .rempty { padding:14px 2px; color:var(--muted); border-top:1px solid var(--line); }
+  .rempty { padding:14px 12px; color:var(--muted); border-top:1px solid var(--line); }
   .btn.danger { background:#d92d20; color:#fff; } .btn.danger:hover { background:#b42318; }
   #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s; z-index:20; max-width:calc(100% - 32px); }
   #toast.show { opacity:1; }
@@ -187,7 +187,7 @@
     <div id="grid"></div>
     <div id="list"></div>
   </main>
-  <footer class="foot">Hens Bone Setting, Hub : +62811 2345 678</footer>
+  <footer class="foot">Hen's Bone Setting</footer>
 </div>
 
 <dialog id="rec" aria-labelledby="rTitle">
@@ -195,7 +195,7 @@
     <h2 id="rTitle"></h2>
     <p class="sub" id="rSub"></p>
     <div class="rlist" id="rList"></div>
-    <div class="cbtns"><button type="button" class="btn ghost" id="rClose">Close</button></div>
+    <div class="cbtns"><button type="button" class="btn ghost" id="rClose" autofocus>Close</button></div>
   </div>
 </dialog>
 
