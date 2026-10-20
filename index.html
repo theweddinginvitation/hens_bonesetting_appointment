@@ -19,6 +19,7 @@
     --body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  [hidden] { display:none !important; }
   html { scroll-behavior:smooth; }
   body { margin:0; font-family:var(--body); background:var(--paper); color:var(--ink); line-height:1.45; }
   button, input { font:inherit; }
@@ -41,7 +42,7 @@
   .day[aria-pressed="true"] { transform:translateY(-2px); box-shadow:0 0 0 2px var(--blue); }
 
   /* time cards */
-  main.wrap { padding-top:24px; padding-bottom:64px; }
+  main.wrap { padding-top:24px; padding-bottom:16px; }
   .head { padding-top:8px; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
   .head h2 { margin:0; font-family:var(--display); font-size:20px; font-weight:700; letter-spacing:-.02em; }
   .head span { color:var(--muted); font-size:14px; font-weight:500; }
@@ -192,6 +193,16 @@ const dlg = $('#dlg');
 const LOCALE = 'id-ID';
 let cfg = null, taken = new Set(), selDate = null, picked = null;
 
+// 0812 3456 7890 -> +6281234567890 ; 62812... -> +62812... ; 0062... -> +62...
+function normPhone(p) {
+  let d = String(p).trim();
+  if (d.startsWith('+')) { d = d.slice(1).replace(/\D/g, ''); if (d.startsWith('0')) d = '62' + d.slice(1); return '+' + d; }
+  d = d.replace(/\D/g, '');
+  if (d.startsWith('00')) return '+' + d.slice(2);
+  if (d.startsWith('0')) return '+62' + d.slice(1);
+  if (d.startsWith('62')) return '+' + d;
+  return d;
+}
 function parts(ymd) { return ymd.split('-').map(Number); }
 function addDays(ymd, n) { const [y, m, d] = parts(ymd); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); }
 function localDate(ymd) { const [y, m, d] = parts(ymd); return new Date(y, m - 1, d); }
@@ -321,13 +332,14 @@ $('#done').onclick = closeDialog;
 $('#form').addEventListener('submit', async e => {
   e.preventDefault();
   if (!picked) return;
-  const name = $('#name').value.trim(), phone = $('#phone').value.trim();
+  const name = $('#name').value.trim(), phoneRaw = $('#phone').value.trim();
   setErr('formErr', '');
   const nameBad = name.length < 2 ? 'Masukkan nama Anda.' : '';
-  const phoneBad = /^[0-9+\-\s()]{7,20}$/.test(phone) ? '' : 'Masukkan nomor telepon yang valid, contoh +62 812 3456 7890.';
+  const phoneBad = /^[0-9+\-\s()]{7,20}$/.test(phoneRaw) ? '' : 'Masukkan nomor telepon yang valid, contoh +62 812 3456 7890.';
   setErr('nameErr', nameBad); setErr('phoneErr', phoneBad);
   if (nameBad) return $('#name').focus();
   if (phoneBad) return $('#phone').focus();
+  const phone = normPhone(phoneRaw);
 
   const save = $('#save'); save.disabled = true; save.textContent = 'Menyimpan…';
   try {
