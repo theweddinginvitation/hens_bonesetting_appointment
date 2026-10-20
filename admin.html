@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Admin – Appointments</title>
+<style>
+  :root { --maroon:#800020; --maroon-d:#5e0017; --green:#2e9e5b; --amber:#c98a00; --bg:#faf7f5; --ink:#2a1f22; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+  body.busy { cursor:progress; }
+  body.busy button { pointer-events:none; opacity:.6; }
+  button { font:inherit; cursor:pointer; }
+  .login { max-width:340px; margin:18vh auto 0; background:#fff; padding:28px 24px; border-radius:16px; box-shadow:0 6px 24px rgba(80,0,20,.12); }
+  .login h1 { margin:0 0 16px; font-size:22px; color:var(--maroon); }
+  .login input { width:100%; padding:12px; border:1px solid #d9c9cd; border-radius:10px; font:inherit; font-size:16px; }
+  .login button { width:100%; margin-top:12px; padding:13px; border:0; border-radius:10px; background:var(--maroon); color:#fff; font-weight:600; }
+  #lerr { color:#b3001b; font-size:14px; min-height:20px; margin:8px 0 0; }
+  .bar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px 16px; background:var(--maroon); color:#fff; position:sticky; top:0; z-index:5; }
+  .bar h1 { font-size:18px; margin:0 auto 0 0; }
+  .bar button { border:1px solid rgba(255,255,255,.5); background:transparent; color:#fff; border-radius:8px; padding:7px 12px; }
+  .bar button:hover { background:rgba(255,255,255,.15); }
+  #range { font-weight:600; min-width:150px; text-align:center; }
+  .scroller { overflow:auto; max-height:calc(100vh - 62px); }
+  #grid { display:grid; grid-template-columns:60px repeat(7,minmax(168px,1fr)); min-width:1240px; }
+  .corner, .dh { position:sticky; top:0; background:#fff; z-index:3; border-bottom:2px solid var(--maroon); padding:10px 8px; }
+  .corner { left:0; z-index:4; }
+  .dh { display:flex; flex-direction:column; text-align:center; border-left:1px solid #eadfe1; }
+  .dh span { font-size:13px; color:#6b5a5f; }
+  .dh.today { background:#f7e6ea; }
+  .dh.today b { color:var(--maroon); }
+  .tl { position:sticky; left:0; background:#fff; z-index:2; padding:10px 6px; font-size:13px; font-weight:600; color:#6b5a5f; text-align:right; border-top:1px solid #eadfe1; }
+  .cell { border-top:1px solid #eadfe1; border-left:1px solid #eadfe1; padding:6px; min-height:104px; }
+  .cell.past { background:#f2ecee; }
+  .empty { width:100%; height:100%; min-height:90px; border:1px dashed #d4c3c7; border-radius:10px; background:transparent; color:#8a7a7f; font-size:13px; }
+  .empty:hover { border-color:var(--maroon); color:var(--maroon); }
+  .card { border-radius:10px; padding:9px 10px; border-left:5px solid; background:#fff; box-shadow:0 1px 3px rgba(60,10,20,.12); }
+  .card.Pending { border-color:var(--amber); background:#fff6dc; }
+  .card.Approved { border-color:var(--green); background:#e4f5ea; }
+  .card.Disabled { border-color:var(--maroon); background:#f4e1e6; }
+  .card .nm { font-weight:600; word-break:break-word; }
+  .card .nm.none { color:#8a5a66; font-style:italic; font-weight:500; }
+  .card a { color:inherit; font-size:13px; }
+  .badge { display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 7px; border-radius:20px; background:rgba(0,0,0,.08); margin-top:4px; }
+  .acts { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .acts button { border:0; border-radius:7px; padding:5px 9px; font-size:12px; font-weight:600; color:#fff; }
+  .b-ap { background:var(--green); } .b-ca { background:#6b5a5f; } .b-di { background:var(--maroon); }
+  #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#2a1f22; color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; opacity:0; pointer-events:none; transition:opacity .25s; z-index:20; }
+  #toast.show { opacity:1; }
+</style>
+</head>
+<body>
+
+<form id="login" class="login">
+  <h1>Admin login</h1>
+  <input id="pw" type="password" placeholder="Password" autocomplete="current-password" required>
+  <p id="lerr"></p>
+  <button type="submit">Sign in</button>
+</form>
+
+<div id="app" hidden>
+  <div class="bar">
+    <h1>Appointments</h1>
+    <button id="prev" type="button">‹ Prev</button>
+    <span id="range"></span>
+    <button id="next" type="button">Next ›</button>
+    <button id="todayBtn" type="button">This week</button>
+    <button id="logout" type="button">Log out</button>
+  </div>
+  <div class="scroller"><div id="grid"></div></div>
+</div>
+<div id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+let password = '', cfg = null, weekStart = '', rows = [];
+
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e[k] = v;
+  }
+  kids.flat().filter(Boolean).forEach(c => e.append(c));
+  return e;
+}
+function parts(ymd) { return ymd.split('-').map(Number); }
+function addDays(ymd, n) { const [y, m, d] = parts(ymd); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); }
+function localDate(ymd) { const [y, m, d] = parts(ymd); return new Date(y, m - 1, d); }
+function md(ymd) { return localDate(ymd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
+function dow(ymd) { return localDate(ymd).toLocaleDateString('en-US', { weekday: 'short' }); }
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.id); toast.id = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+async function api(body) {
+  const r = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ ...body, password })
+  });
+  return r.json();
+}
+
+async function load() {
+  const r = await api({ action: 'admin_list', from: weekStart });
+  if (!r.ok) throw new Error(r.error);
+  cfg = r.config; weekStart = r.from; rows = r.rows;
+  render();
+}
+
+function render() {
+  $('#range').textContent = md(weekStart) + ' – ' + md(addDays(weekStart, 6)) + ', ' + localDate(addDays(weekStart, 6)).getFullYear();
+  const byKey = new Map(rows.map(r => [r.date + ' ' + r.time, r]));
+  const g = $('#grid'); g.replaceChildren();
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  g.append(h('div', { class: 'corner' }));
+  days.forEach(d => g.append(h('div', { class: 'dh' + (d === cfg.today ? ' today' : '') },
+    h('b', { text: dow(d) }), h('span', { text: md(d) }))));
+  cfg.times.forEach(t => {
+    g.append(h('div', { class: 'tl', text: t }));
+    days.forEach(d => g.append(cell(d, t, byKey.get(d + ' ' + t))));
+  });
+}
+
+function cell(d, t, r) {
+  const past = (d + ' ' + t) <= cfg.now;
+  const c = h('div', { class: 'cell' + (past ? ' past' : '') });
+  if (!r) {
+    c.append(h('button', { class: 'empty', type: 'button', text: 'Open · Disable',
+      onclick: () => act({ action: 'disable', date: d, time: t }, 'Slot disabled.') }));
+    return c;
+  }
+  const named = !!r.name;
+  const acts = h('div', { class: 'acts' });
+  if (named && r.status !== 'Approved') acts.append(h('button', { class: 'b-ap', type: 'button', text: 'Approved',
+    onclick: () => act({ action: 'update', id: r.id, status: 'Approved' }, 'Approved.') }));
+  acts.append(h('button', { class: 'b-ca', type: 'button', text: 'Cancelled',
+    onclick: () => {
+      if (named && !confirm('Cancel this appointment? The slot becomes available again.')) return;
+      act({ action: 'update', id: r.id, status: 'Cancelled' }, 'Slot available again.');
+    } }));
+  if (named && r.status !== 'Disabled') acts.append(h('button', { class: 'b-di', type: 'button', text: 'Disabled',
+    onclick: () => act({ action: 'update', id: r.id, status: 'Disabled' }, 'Slot disabled.') }));
+  const phone = r.phone ? h('a', { href: 'tel:' + r.phone, text: r.phone }) : null;
+  c.append(h('div', { class: 'card ' + r.status },
+    h('div', { class: 'nm' + (named ? '' : ' none'), text: named ? r.name : 'Blocked slot' }),
+    phone,
+    h('div', null, h('span', { class: 'badge', text: r.status })),
+    acts));
+  return c;
+}
+
+async function act(payload, okMsg) {
+  document.body.classList.add('busy');
+  try {
+    const r = await api(payload);
+    if (!r.ok) throw new Error(r.error);
+    await load();
+    toast(okMsg);
+  } catch (e) {
+    toast(e.message || 'Error'); try { await load(); } catch (_) {}
+  } finally {
+    document.body.classList.remove('busy');
+  }
+}
+
+function showApp() { $('#login').hidden = true; $('#app').hidden = false; }
+function logout() { sessionStorage.removeItem('adminPw'); password = ''; location.reload(); }
+
+async function start(pw) {
+  password = pw;
+  try {
+    await load();
+    sessionStorage.setItem('adminPw', pw);
+    showApp();
+    return true;
+  } catch (e) {
+    $('#lerr').textContent = e.message || 'Login failed.';
+    sessionStorage.removeItem('adminPw'); password = '';
+    return false;
+  }
+}
+
+$('#login').addEventListener('submit', async e => { e.preventDefault(); $('#lerr').textContent = ''; await start($('#pw').value); });
+$('#prev').onclick = () => { weekStart = addDays(weekStart, -7); load().catch(err => toast(err.message)); };
+$('#next').onclick = () => { weekStart = addDays(weekStart, 7); load().catch(err => toast(err.message)); };
+$('#todayBtn').onclick = () => { weekStart = ''; load().catch(err => toast(err.message)); };
+$('#logout').onclick = logout;
+
+if (!API_URL || API_URL.startsWith('PASTE')) { $('#lerr').textContent = 'Set API_URL in config.js first.'; }
+else { const saved = sessionStorage.getItem('adminPw'); if (saved) start(saved); }
+setInterval(() => { if (!$('#app').hidden && !document.body.classList.contains('busy')) load().catch(() => {}); }, 30000);
+</script>
+</body>
+</html>

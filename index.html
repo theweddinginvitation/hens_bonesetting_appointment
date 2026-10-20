@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Book an Appointment</title>
+<style>
+  :root { --maroon:#800020; --maroon-d:#5e0017; --green:#2e9e5b; --green-d:#23804a; --bg:#faf7f5; --ink:#2a1f22; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap { max-width:640px; margin:0 auto; padding:0 16px 48px; }
+  header { padding:24px 0 12px; }
+  h1 { margin:0; font-size:24px; color:var(--maroon); }
+  header p { margin:4px 0 0; color:#6b5a5f; font-size:14px; }
+  .legend { display:flex; gap:16px; font-size:13px; margin:8px 0 12px; }
+  .legend i { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  #days { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; position:sticky; top:0; background:var(--bg); padding:8px 0; z-index:2; }
+  #days button { border:1px solid #e3d6d9; background:#fff; border-radius:10px; padding:8px 0; font:inherit; cursor:pointer; line-height:1.2; }
+  #days button small { display:block; font-size:11px; color:#7a6a6f; text-transform:uppercase; }
+  #days button b { font-size:16px; }
+  #days button.active { background:var(--maroon); border-color:var(--maroon); color:#fff; }
+  #days button.active small { color:#f0d3da; }
+  #dayTitle { margin:16px 0 10px; font-size:17px; }
+  #slots { display:grid; gap:8px; }
+  .slot { display:flex; justify-content:space-between; align-items:center; width:100%; border:0; border-radius:12px; padding:16px; font:inherit; font-size:16px; color:#fff; text-align:left; }
+  .slot span:last-child { font-size:13px; opacity:.9; }
+  .slot.free { background:var(--green); cursor:pointer; }
+  .slot.free:active { background:var(--green-d); }
+  .slot.taken { background:var(--maroon); cursor:not-allowed; opacity:.9; }
+  .overlay { position:fixed; inset:0; background:rgba(30,10,16,.55); display:flex; align-items:flex-end; justify-content:center; z-index:10; }
+  .overlay[hidden] { display:none; }
+  .sheet { background:#fff; width:100%; max-width:520px; border-radius:18px 18px 0 0; padding:22px 20px 24px; }
+  .sheet h2 { margin:0 0 2px; font-size:19px; color:var(--maroon); }
+  .sheet p.sub { margin:0 0 14px; color:#6b5a5f; font-size:14px; }
+  label { display:block; font-size:13px; font-weight:600; margin:12px 0 4px; }
+  input { width:100%; padding:13px 12px; border:1px solid #d9c9cd; border-radius:10px; font:inherit; font-size:16px; }
+  input:focus { outline:2px solid var(--maroon); border-color:transparent; }
+  #err { color:#b3001b; font-size:14px; min-height:20px; margin:10px 0 0; }
+  .row { display:flex; gap:10px; margin-top:10px; }
+  .row button { flex:1; padding:14px; border-radius:10px; border:0; font:inherit; font-weight:600; font-size:16px; cursor:pointer; }
+  #cancel { background:#eee3e5; color:var(--ink); }
+  #save { background:var(--maroon); color:#fff; }
+  #save:disabled { opacity:.6; }
+  #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#2a1f22; color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; opacity:0; pointer-events:none; transition:opacity .25s; z-index:20; max-width:90%; text-align:center; }
+  #toast.show { opacity:1; }
+  .msg { padding:20px; text-align:center; color:#6b5a5f; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Book an appointment</h1>
+    <p>Pick a day, then tap a green slot.</p>
+  </header>
+  <div class="legend">
+    <span><i style="background:var(--green)"></i>Available</span>
+    <span><i style="background:var(--maroon)"></i>Unavailable</span>
+  </div>
+  <nav id="days" aria-label="Days"></nav>
+  <h2 id="dayTitle"></h2>
+  <main id="slots"><div class="msg">Loading…</div></main>
+</div>
+
+<div id="sheetBg" class="overlay" hidden>
+  <form id="form" class="sheet" autocomplete="off">
+    <h2 id="sTitle"></h2>
+    <p class="sub" id="sSub"></p>
+    <label for="name">Name</label>
+    <input id="name" name="name" required minlength="2" maxlength="80" placeholder="Your full name">
+    <label for="phone">Phone Number</label>
+    <input id="phone" name="phone" type="tel" inputmode="tel" required maxlength="20" placeholder="+62 812 3456 7890">
+    <p id="err" role="alert"></p>
+    <div class="row">
+      <button type="button" id="cancel">Cancel</button>
+      <button type="submit" id="save">Save</button>
+    </div>
+  </form>
+</div>
+<div id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+let cfg = null, taken = new Set(), selDate = null, picked = null;
+
+function parts(ymd) { return ymd.split('-').map(Number); }
+function addDays(ymd, n) {
+  const [y, m, d] = parts(ymd);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+}
+function localDate(ymd) { const [y, m, d] = parts(ymd); return new Date(y, m - 1, d); }
+function endTime(t, mins) {
+  const [h, m] = t.split(':').map(Number), x = h * 60 + m + mins;
+  return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0');
+}
+function longDate(ymd) {
+  return localDate(ymd).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.id); toast.id = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+async function load() {
+  if (!API_URL || API_URL.startsWith('PASTE')) {
+    $('#slots').innerHTML = '<div class="msg">Set API_URL in config.js first.</div>'; return;
+  }
+  try {
+    const r = await fetch(API_URL + '?action=slots');
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+    cfg = d.config;
+    taken = new Set(d.taken.map(t => t.date + ' ' + t.time));
+    if (!selDate || selDate < cfg.today) selDate = cfg.today;
+    render();
+  } catch (e) {
+    if (!cfg) $('#slots').innerHTML = '<div class="msg">Could not load slots. Try again later.</div>';
+  }
+}
+
+function render() {
+  const days = $('#days'); days.replaceChildren();
+  for (let i = 0; i < cfg.days; i++) {
+    const ymd = addDays(cfg.today, i), dt = localDate(ymd);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = ymd === selDate ? 'active' : '';
+    const s = document.createElement('small'); s.textContent = dt.toLocaleDateString('en-US', { weekday: 'short' });
+    const n = document.createElement('b'); n.textContent = dt.getDate();
+    b.append(s, n);
+    b.onclick = () => { selDate = ymd; render(); };
+    days.append(b);
+  }
+  $('#dayTitle').textContent = longDate(selDate);
+  const list = $('#slots'); list.replaceChildren();
+  cfg.times.forEach(t => {
+    const key = selDate + ' ' + t;
+    const free = !taken.has(key) && key > cfg.now;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'slot ' + (free ? 'free' : 'taken');
+    b.disabled = !free;
+    const a = document.createElement('span'); a.textContent = t + ' – ' + endTime(t, cfg.slotMinutes);
+    const c = document.createElement('span'); c.textContent = free ? 'Available' : 'Unavailable';
+    b.append(a, c);
+    if (free) b.onclick = () => openSheet(selDate, t);
+    list.append(b);
+  });
+}
+
+function openSheet(date, time) {
+  picked = { date, time };
+  $('#sTitle').textContent = 'Book ' + time + ' – ' + endTime(time, cfg.slotMinutes);
+  $('#sSub').textContent = longDate(date);
+  $('#err').textContent = '';
+  $('#form').reset();
+  $('#sheetBg').hidden = false;
+  setTimeout(() => $('#name').focus(), 50);
+}
+function closeSheet() { $('#sheetBg').hidden = true; picked = null; }
+
+$('#cancel').onclick = closeSheet;
+$('#sheetBg').addEventListener('click', e => { if (e.target.id === 'sheetBg') closeSheet(); });
+
+$('#form').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!picked) return;
+  const save = $('#save'); save.disabled = true; save.textContent = 'Saving…'; $('#err').textContent = '';
+  try {
+    const r = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'book', date: picked.date, time: picked.time,
+        name: $('#name').value, phone: $('#phone').value })
+    });
+    const d = await r.json();
+    if (!d.ok) { $('#err').textContent = d.error; await load(); if (/taken|past/i.test(d.error)) setTimeout(closeSheet, 1500); return; }
+    closeSheet();
+    toast('Appointment saved. Thank you!');
+    await load();
+  } catch (err) {
+    $('#err').textContent = 'Network error. Please try again.';
+  } finally {
+    save.disabled = false; save.textContent = 'Save';
+  }
+});
+
+load();
+setInterval(() => { if ($('#sheetBg').hidden) load(); }, 30000);
+</script>
+</body>
+</html>
