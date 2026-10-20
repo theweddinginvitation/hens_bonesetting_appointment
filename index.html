@@ -34,7 +34,10 @@
 
   /* header: brand, title, week strip */
   .hero { background:rgba(255,255,255,.66); -webkit-backdrop-filter:blur(16px) saturate(160%); backdrop-filter:blur(16px) saturate(160%); color:var(--ink); padding:22px 0 14px; border-bottom:1px solid rgba(255,255,255,.7); box-shadow:0 1px 0 rgba(34,42,53,.06); }
-  .hero .brand { margin:0 0 14px; font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .hero .brand { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 14px; font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .cta { flex:none; background:var(--blue); color:#fff; text-decoration:none; font-family:var(--body); font-weight:600; font-size:13.5px; letter-spacing:0; padding:8px 14px; border-radius:10px; transition:background .2s, transform .08s; }
+  .cta:hover { background:var(--blue-deep); }
+  .cta:active { transform:scale(.97); }
   .hero h1 { margin:0 0 18px; font-family:var(--display); font-weight:800; font-size:clamp(28px,6.5vw,38px); line-height:1.1; letter-spacing:-.03em; }
   #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; scroll-padding-inline:6px; padding:6px 6px 8px; margin:0 -6px; scrollbar-width:none; }
   #days::-webkit-scrollbar { display:none; }
@@ -140,7 +143,7 @@
 
 <header class="hero">
   <div class="wrap">
-    <p class="brand">Hen's Bone Setting</p>
+    <div class="brand"><span>Hen's Bone Setting</span><a class="cta" href="https://wa.me/6282178570909" target="_blank" rel="noopener">Hubungi Kami</a></div>
     <h1>Reservasi</h1>
     <div id="days" role="group" aria-label="Pilih hari"></div>
   </div>
@@ -158,7 +161,7 @@
   <div id="slots" aria-live="polite"></div>
 </main>
 
-<footer class="foot">Hens Bone Setting, Hub : +62811 2345 678</footer>
+<footer class="foot">Hen's Bone Setting, Hub: +6282178570909</footer>
 
 <dialog id="dlg" aria-labelledby="dTitle">
   <div id="formView">
