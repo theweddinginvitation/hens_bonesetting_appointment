@@ -38,6 +38,33 @@
   .cta { flex:none; background:var(--blue); color:#fff; text-decoration:none; font-family:var(--body); font-weight:600; font-size:13.5px; letter-spacing:0; padding:8px 14px; border-radius:10px; transition:background .2s, transform .08s; }
   .cta:hover { background:var(--blue-deep); }
   .cta:active { transform:scale(.97); }
+  .carousel { position:relative; margin-top:16px; border-radius:18px; overflow:hidden; aspect-ratio:16/9; background:#e9edf2; box-shadow:0 0 0 1px rgba(34,42,53,.06), 0 8px 24px rgba(71,103,136,.14); }
+  @media (min-width:640px) { .carousel { aspect-ratio:21/9; } }
+  .carousel.loading { background:linear-gradient(90deg,#eceff3,#f6f7f9,#eceff3); background-size:200% 100%; animation:sh 1.2s linear infinite; }
+  .track { display:flex; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .track::-webkit-scrollbar { display:none; }
+  .slide { flex:0 0 100%; height:100%; scroll-snap-align:center; scroll-snap-stop:always; }
+  .slide { cursor:zoom-in; }
+  .slide img { width:100%; height:100%; object-fit:cover; display:block; user-select:none; -webkit-user-drag:none; }
+  .cdots { position:absolute; left:50%; bottom:10px; transform:translateX(-50%); display:flex; gap:6px; padding:6px 9px; border-radius:20px; background:rgba(255,255,255,.3); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .cdots button { width:7px; height:7px; padding:0; border:0; border-radius:4px; background:rgba(255,255,255,.75); transition:width .4s cubic-bezier(.22,1,.36,1), background .2s; }
+  .cdots button[aria-current="true"] { width:20px; background:#fff; }
+  .cbtn { display:none; position:absolute; top:50%; width:38px; height:38px; margin-top:-19px; border:0; border-radius:50%; background:rgba(255,255,255,.6); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); color:var(--ink); font-size:22px; line-height:1; place-items:center; cursor:pointer; transition:background .2s, transform .2s cubic-bezier(.22,1,.36,1); }
+  .cbtn:hover { background:#fff; }
+  dialog#lb { width:100%; height:100%; max-width:none; max-height:none; margin:0; border:0; border-radius:0; padding:0; overflow:hidden; background:rgba(8,16,30,.9); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); color:#fff; box-shadow:none; }
+  dialog#lb[open] { animation:fade .25s ease; }
+  .lbbar { position:absolute; top:0; left:0; right:0; z-index:2; display:flex; justify-content:space-between; align-items:center; padding:calc(12px + env(safe-area-inset-top,0px)) 14px 12px; pointer-events:none; }
+  .lbbar span { background:rgba(255,255,255,.16); border-radius:20px; padding:5px 12px; font-size:13px; font-weight:600; }
+  .lbbar button { pointer-events:auto; width:40px; height:40px; border:0; border-radius:50%; background:rgba(255,255,255,.16); color:#fff; font-size:18px; cursor:pointer; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
+  .lbtrack { display:flex; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; overscroll-behavior:contain; }
+  .lbtrack::-webkit-scrollbar { display:none; }
+  dialog#lb.zoomed .lbtrack { overflow-x:hidden; scroll-snap-type:none; }
+  .lbslide { flex:0 0 100%; height:100%; display:flex; overflow:hidden; scroll-snap-align:center; scroll-snap-stop:always; padding:60px 0 24px; box-sizing:border-box; }
+  .lbslide img { max-width:100%; max-height:100%; margin:auto; object-fit:contain; cursor:zoom-in; user-select:none; -webkit-user-drag:none; }
+  .lbslide.zoomed { display:block; overflow:auto; padding:0; -webkit-overflow-scrolling:touch; }
+  .lbslide.zoomed img { max-width:none; max-height:none; width:240%; height:auto; margin:0; display:block; cursor:zoom-out; }
+  .cbtn.prev { left:12px; } .cbtn.next { right:12px; }
+  @media (hover:hover) { .cbtn { display:grid; } }
   .hero h1 { margin:0 0 18px; font-family:var(--display); font-weight:800; font-size:clamp(28px,6.5vw,38px); line-height:1.1; letter-spacing:-.03em; }
   #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; scroll-padding-inline:6px; padding:6px 6px 8px; margin:0 -6px; scrollbar-width:none; }
   #days::-webkit-scrollbar { display:none; }
@@ -149,6 +176,10 @@
   </div>
 </header>
 
+<div class="wrap">
+  <section class="carousel loading" id="carousel" aria-roledescription="carousel" aria-label="Galeri foto"></section>
+</div>
+
 <main class="wrap">
   <div class="head">
     <h2 id="dayTitle">&nbsp;</h2>
@@ -161,7 +192,7 @@
   <div id="slots" aria-live="polite"></div>
 </main>
 
-<footer class="foot">Hen's Bone Setting</footer>
+<footer class="foot" id="foot">Hen's Bone Setting</footer>
 
 <dialog id="dlg" aria-labelledby="dTitle">
   <div id="formView">
@@ -193,6 +224,11 @@
     <a class="addr" id="addr" target="_blank" rel="noopener">Klik disini untuk melihat alamat kami</a>
     <button type="button" class="btn primary" id="done">Selesai</button>
   </div>
+</dialog>
+
+<dialog id="lb" aria-label="Foto">
+  <div class="lbbar"><span id="lbCount"></span><button type="button" id="lbX" aria-label="Tutup">&#10005;</button></div>
+  <div class="lbtrack" id="lbTrack"></div>
 </dialog>
 
 <dialog id="dup" aria-labelledby="dupTitle">
@@ -402,8 +438,100 @@ $('#form').addEventListener('submit', async e => {
   }
 });
 
+/* ---- carousel (images are managed from admin.html) ---- */
+const CAR = $('#carousel');
+function driveUrl(id, w) { return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + w; }
+let carPause = 0, lbImages = [];
+try { CAR.hidden = localStorage.getItem('hbs_car') === '0'; } catch (e) {}
+function rememberCar(on) { try { localStorage.setItem('hbs_car', on ? '1' : '0'); } catch (e) {} }
+async function loadCarousel() {
+  if (!API_URL || API_URL.startsWith('PASTE')) { CAR.hidden = true; return; }
+  try {
+    const d = await (await fetch(API_URL + '?action=site')).json();
+    if (!d.ok) throw new Error(d.error);
+    if (d.footer) $('#foot').textContent = d.footer;
+    if (!d.carouselEnabled || !d.images.length) { rememberCar(false); CAR.hidden = true; return; }
+    rememberCar(true); CAR.hidden = false;
+    lbImages = d.images;
+    buildCarousel(d.images);
+  } catch (e) { CAR.hidden = true; }
+}
+function buildCarousel(images) {
+  CAR.replaceChildren();
+  const track = el('div', 'track');
+  images.forEach((im, i) => {
+    const s = el('div', 'slide'), img = document.createElement('img');
+    img.src = driveUrl(im.fileId, 1600);
+    img.alt = 'Foto ' + (i + 1);
+    img.decoding = 'async'; img.draggable = false;
+    img.loading = i ? 'lazy' : 'eager';
+    img.onerror = () => { if (!img.dataset.f) { img.dataset.f = 1; img.src = 'https://lh3.googleusercontent.com/d/' + im.fileId + '=w1600'; } };
+    s.append(img); s.onclick = () => openLightbox(i); track.append(s);
+  });
+  CAR.append(track);
+  CAR.classList.remove('loading');
+  const n = images.length;
+  if (n < 2) return;
+
+  const idx = () => Math.round(track.scrollLeft / track.clientWidth);
+  const go = i => track.scrollTo({ left: ((i % n) + n) % n * track.clientWidth, behavior: 'smooth' });
+  const dots = el('div', 'cdots');
+  const dotBtns = images.map((_, i) => { const b = el('button'); b.type = 'button'; b.setAttribute('aria-label', 'Foto ' + (i + 1)); b.onclick = () => { carPause = Date.now() + 8000; go(i); }; dots.append(b); return b; });
+  const prev = el('button', 'cbtn prev', '‹'), next = el('button', 'cbtn next', '›');
+  prev.type = next.type = 'button'; prev.setAttribute('aria-label', 'Sebelumnya'); next.setAttribute('aria-label', 'Berikutnya');
+  prev.onclick = () => { carPause = Date.now() + 8000; go(idx() - 1); };
+  next.onclick = () => { carPause = Date.now() + 8000; go(idx() + 1); };
+  CAR.append(prev, next, dots);
+
+  let raf = 0;
+  const sync = () => { const c = idx(); dotBtns.forEach((b, i) => b.setAttribute('aria-current', i === c)); };
+  track.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(sync); }, { passive: true });
+  ['pointerdown', 'touchstart', 'wheel'].forEach(ev => track.addEventListener(ev, () => { carPause = Date.now() + 8000; }, { passive: true }));
+  CAR.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') carPause = Date.now() + 8000; });
+  sync();
+  if (!matchMedia('(prefers-reduced-motion:reduce)').matches) {
+    setInterval(() => { if (!document.hidden && !lb.open && Date.now() > carPause) go(idx() + 1); }, 5000);
+  }
+}
+
+/* ---- lightbox: swipe between photos, tap a photo to zoom ---- */
+const lb = $('#lb'), lbTrack = $('#lbTrack');
+function openLightbox(i) {
+  lbTrack.replaceChildren(); lb.classList.remove('zoomed');
+  lbImages.forEach((im, k) => {
+    const s = el('div', 'lbslide'), img = document.createElement('img');
+    img.src = driveUrl(im.fileId, 2000); img.alt = 'Foto ' + (k + 1); img.draggable = false; img.decoding = 'async';
+    img.onerror = () => { if (!img.dataset.f) { img.dataset.f = 1; img.src = 'https://lh3.googleusercontent.com/d/' + im.fileId + '=w2000'; } };
+    s.append(img); s.onclick = e => zoomTap(s, e); lbTrack.append(s);
+  });
+  carPause = Infinity;
+  lb.showModal();
+  lbTrack.scrollLeft = i * lbTrack.clientWidth;
+  lbCount();
+}
+function zoomTap(s, e) {
+  const img = s.firstChild;
+  if (s.classList.contains('zoomed')) { s.classList.remove('zoomed'); lb.classList.remove('zoomed'); s.scrollLeft = 0; s.scrollTop = 0; return; }
+  if (e.target !== img) { lb.close(); return; }          // tap on the dark area closes
+  const r = img.getBoundingClientRect();
+  const fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+  s.classList.add('zoomed'); lb.classList.add('zoomed');
+  s.scrollLeft = fx * s.scrollWidth - s.clientWidth / 2;  // keep the tapped spot under the finger
+  s.scrollTop = fy * s.scrollHeight - s.clientHeight / 2;
+}
+function lbCount() { $('#lbCount').textContent = (Math.round(lbTrack.scrollLeft / lbTrack.clientWidth) + 1) + ' / ' + lbImages.length; }
+lbTrack.addEventListener('scroll', () => requestAnimationFrame(lbCount), { passive: true });
+$('#lbX').onclick = () => lb.close();
+lb.addEventListener('close', () => { lb.classList.remove('zoomed'); carPause = Date.now() + 8000; });
+lb.addEventListener('keydown', e => {
+  if (lb.classList.contains('zoomed')) return;
+  if (e.key === 'ArrowRight') lbTrack.scrollBy({ left: lbTrack.clientWidth, behavior: 'smooth' });
+  if (e.key === 'ArrowLeft') lbTrack.scrollBy({ left: -lbTrack.clientWidth, behavior: 'smooth' });
+});
+
 showSkeleton();
 load();
+loadCarousel();
 setInterval(() => { if (!dlg.open) load(); }, 30000);
 </script>
 </body>
