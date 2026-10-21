@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hen's Bone Setting – Buat Janji Temu</title>
+<title>Hen's Bone Setting – Reservasi Online</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
   :root {
     --ink:#0b3558; --muted:#5b6f86; --line:#e3e7ec;
     --blue:#006bff; --blue-deep:#0052cc; --blue-soft:#eaf2ff;
-    --ok:#17a05d;
+    --ok:#006bff;
     --paper:#f7f8fa; --surface:#fff; --chip:#f1f3f6;
     --ring:0 0 0 1px rgba(34,42,53,.08);
     --lift:0 4px 14px rgba(71,103,136,.16);
@@ -25,7 +25,7 @@
   body::before { content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
     background:
       radial-gradient(60% 40% at 12% 8%, rgba(0,107,255,.20), transparent 70%),
-      radial-gradient(50% 35% at 95% 32%, rgba(23,160,93,.16), transparent 70%),
+      radial-gradient(50% 35% at 95% 32%, rgba(0,107,255,.12), transparent 70%),
       radial-gradient(60% 40% at 25% 95%, rgba(245,180,0,.16), transparent 70%); }
   button, input { font:inherit; }
   button { touch-action:manipulation; }
@@ -71,11 +71,11 @@
   .hero h1 { margin:0 0 18px; font-family:var(--display); font-weight:800; font-size:clamp(28px,6.5vw,38px); line-height:1.1; letter-spacing:-.03em; }
   #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; scroll-padding-inline:6px; padding:6px 6px 8px; margin:0 -6px; scrollbar-width:none; }
   #days::-webkit-scrollbar { display:none; }
-  .day { flex:0 0 70px; min-height:72px; scroll-snap-align:start; border:0; border-radius:12px; padding:9px 4px; background:#e4f5ec; color:#0b5d37; cursor:pointer; text-align:center; transition:transform .15s, box-shadow .15s, filter .15s; }
+  .day { flex:0 0 70px; min-height:72px; scroll-snap-align:start; border:0; border-radius:12px; padding:9px 4px; background:#e0ecff; color:#0052cc; cursor:pointer; text-align:center; transition:transform .15s, box-shadow .15s, filter .15s; }
   .day:hover { filter:brightness(.97); }
   .day .dn, .day .dc { display:block; font-size:11.5px; font-weight:600; opacity:.85; }
   .day .dd { display:block; font-family:var(--display); font-weight:700; font-size:24px; line-height:1.1; margin:1px 0 2px; letter-spacing:-.02em; }
-  .day.ok   { background:#e4f5ec; color:#0b5d37; }
+  .day.ok   { background:#e0ecff; color:#0052cc; }
   .day.low  { background:#fff1cc; color:#6b4300; }
   .day.none { background:#fdeaed; color:#a1283b; }
   .day[aria-pressed="true"] { transform:translateY(-2px); box-shadow:0 0 0 2px var(--blue); }
