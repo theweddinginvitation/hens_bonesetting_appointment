@@ -172,10 +172,13 @@
   .panel { background:var(--surface); border-radius:16px; box-shadow:var(--ring); padding:18px; margin-bottom:16px; }
   .panel h2 { margin:0 0 4px; font-family:var(--display); font-size:20px; letter-spacing:-.02em; }
   .hint2 { margin:0 0 14px; color:var(--muted); font-size:13.5px; }
-  .seg { display:inline-flex; background:var(--chip); border-radius:12px; padding:4px; gap:4px; }
-  .seg button { border:0; background:transparent; border-radius:9px; padding:9px 20px; font-weight:600; font-size:14px; color:var(--muted); transition:background .2s, color .2s; }
-  .seg button[aria-pressed="true"].on { background:var(--ok); color:#fff; }
-  .seg button[aria-pressed="true"].off { background:#fff; color:var(--ink); box-shadow:var(--ring); }
+  .seg { position:relative; display:inline-grid; grid-template-columns:1fr 1fr; background:var(--chip); border-radius:999px; padding:4px; }
+  .seg .sthumb { position:absolute; top:4px; bottom:4px; left:4px; width:calc((100% - 8px) / 2); border-radius:999px; background:var(--blue); box-shadow:0 4px 12px rgba(0,107,255,.35);
+    transition:transform .55s cubic-bezier(.22,1,.36,1), background .4s cubic-bezier(.22,1,.36,1), box-shadow .4s cubic-bezier(.22,1,.36,1); will-change:transform; }
+  .seg[data-on="0"] .sthumb { transform:translateX(100%); background:#fff; box-shadow:0 0 0 1px rgba(34,42,53,.08), 0 3px 10px rgba(11,53,88,.14); }
+  .seg button { position:relative; z-index:1; border:0; background:transparent; border-radius:999px; padding:10px 24px; font-weight:600; font-size:14px; color:var(--muted); touch-action:manipulation; transition:color .35s cubic-bezier(.22,1,.36,1); }
+  .seg button[aria-pressed="true"].on { color:#fff; }
+  .seg button[aria-pressed="true"].off { color:var(--ink); }
   .panel.off #pList { opacity:.5; }
   .frow { display:flex; gap:10px; }
   .frow input { flex:1; min-width:0; padding:12px 14px; border:1px solid #cdd5de; border-radius:10px; font-size:16px; background:#fff; color:var(--ink); }
@@ -231,7 +234,8 @@
     <section class="panel" id="carPanel">
       <h2>Carousel</h2>
       <p class="hint2" id="carNote"></p>
-      <div class="seg" role="group" aria-label="Carousel">
+      <div class="seg" id="carSeg" data-on="1" role="group" aria-label="Carousel">
+        <span class="sthumb" aria-hidden="true"></span>
         <button type="button" class="on" id="carOn">Enable</button>
         <button type="button" class="off" id="carOff">Disable</button>
       </div>
@@ -457,6 +461,7 @@ async function loadSettings() {
 function renderCarousel() {
   $('#carOn').setAttribute('aria-pressed', S.enabled);
   $('#carOff').setAttribute('aria-pressed', !S.enabled);
+  $('#carSeg').dataset.on = S.enabled ? '1' : '0';
   $('#carNote').textContent = S.enabled ? 'Photos are shown at the top of the booking page.' : 'Disabled: the carousel is hidden on the booking page.';
   $('#carPanel').classList.toggle('off', !S.enabled);
   $('#pAdd').disabled = S.images.length >= S.max;
