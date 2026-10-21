@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
 <title>Hen's Bone Setting – Reservasi Online</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,92 +21,86 @@
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   [hidden] { display:none !important; }
-  html { scroll-behavior:smooth; }
-  body { margin:0; font-family:var(--body); background:var(--paper); color:var(--ink); line-height:1.45; }
-  body::before { content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
-    background:
-      radial-gradient(60% 40% at 12% 8%, rgba(0,107,255,.20), transparent 70%),
-      radial-gradient(50% 35% at 95% 32%, rgba(0,107,255,.12), transparent 70%),
-      radial-gradient(60% 40% at 25% 95%, rgba(245,180,0,.16), transparent 70%); }
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; scrollbar-gutter:stable; }
+  html:has(dialog[open]) { overflow:hidden; }               /* no page scroll behind a dialog */
+  body { margin:0; min-height:100vh; min-height:100dvh; font-family:var(--body); background-color:var(--paper); color:var(--ink); line-height:1.45;
+    /* painted once with the page: no fixed layer to repaint while scrolling on a phone */
+    background-image:
+      radial-gradient(60% 320px at 12% 0, rgba(0,107,255,.16), transparent 70%),
+      radial-gradient(50% 300px at 100% 420px, rgba(0,107,255,.09), transparent 70%);
+    background-repeat:no-repeat; }
   button, input { font:inherit; }
   button { touch-action:manipulation; }
   :focus-visible { outline:3px solid #3b82f6; outline-offset:2px; }
-  .wrap { max-width:720px; margin:0 auto; padding:0 16px; }
+  .wrap { max-width:720px; margin:0 auto; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); }
 
-  /* header: brand, title, week strip */
-  .hero { background:rgba(255,255,255,.66); -webkit-backdrop-filter:blur(16px) saturate(160%); backdrop-filter:blur(16px) saturate(160%); color:var(--ink); padding:22px 0 14px; border-bottom:1px solid rgba(255,255,255,.7); box-shadow:0 1px 0 rgba(34,42,53,.06); }
-  .hero .brand { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 14px; font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; padding-bottom:12px; border-bottom:1px solid var(--line); }
-  .bl { display:inline-flex; align-items:center; gap:10px; }
+  /* header: brand only */
+  .hero { background:rgba(255,255,255,.94); border-bottom:1px solid var(--line); padding:calc(12px + env(safe-area-inset-top,0px)) 0 12px; }
+  .hero .brand { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0; font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; }
+  .bl { display:inline-flex; align-items:center; gap:10px; min-width:0; }
+  .bn { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .logo { flex:none; width:32px; height:32px; border-radius:10px; background:var(--blue-soft); color:var(--blue); display:grid; place-items:center; }
   .logo svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  .cta { flex:none; background:var(--blue); color:#fff; text-decoration:none; font-family:var(--body); font-weight:600; font-size:13.5px; letter-spacing:0; padding:8px 14px; border-radius:10px; transition:background .2s, transform .08s; }
+  .cta { flex:none; background:var(--blue); color:#fff; text-decoration:none; font-family:var(--body); font-weight:600; font-size:13.5px; letter-spacing:0; padding:9px 14px; border-radius:10px; transition:background .2s, transform .08s; }
   .cta:hover { background:var(--blue-deep); }
   .cta:active { transform:scale(.97); }
-  .carousel { position:relative; margin-top:16px; border-radius:18px; overflow:hidden; aspect-ratio:16/9; background:#e9edf2; box-shadow:0 0 0 1px rgba(34,42,53,.06), 0 8px 24px rgba(71,103,136,.14); }
+
+  /* carousel: directly under the header */
+  .ctitle, .reserve h1 { margin:0; font-family:var(--display); font-weight:800; font-size:clamp(26px,6.5vw,34px); line-height:1.1; letter-spacing:-.03em; color:var(--ink); }
+  .ctitle { margin:18px 0 10px; }
+  .carousel { position:relative; isolation:isolate; margin-top:8px; border-radius:18px; overflow:hidden; aspect-ratio:16/9; background:#e9edf2; box-shadow:0 0 0 1px rgba(34,42,53,.06), 0 8px 24px rgba(71,103,136,.14); }
   @media (min-width:640px) { .carousel { aspect-ratio:21/9; } }
   .carousel.loading { background:linear-gradient(90deg,#eceff3,#f6f7f9,#eceff3); background-size:200% 100%; animation:sh 1.2s linear infinite; }
   .track { display:flex; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   .track::-webkit-scrollbar { display:none; }
-  .slide { flex:0 0 100%; height:100%; scroll-snap-align:center; scroll-snap-stop:always; }
-  .slide { cursor:zoom-in; }
-  .slide img { width:100%; height:100%; object-fit:cover; display:block; user-select:none; -webkit-user-drag:none; }
-  .cdots { position:absolute; left:50%; bottom:10px; transform:translateX(-50%); display:flex; gap:6px; padding:6px 9px; border-radius:20px; background:rgba(255,255,255,.3); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .cdots button { width:7px; height:7px; padding:0; border:0; border-radius:4px; background:rgba(255,255,255,.75); transition:width .4s cubic-bezier(.22,1,.36,1), background .2s; }
+  .slide { flex:0 0 100%; height:100%; scroll-snap-align:center; scroll-snap-stop:always; cursor:zoom-in; background:#e9edf2; }
+  .slide img { width:100%; height:100%; object-fit:cover; display:block; user-select:none; -webkit-user-select:none; -webkit-user-drag:none; }
+  .cdots { position:absolute; left:50%; bottom:10px; transform:translateX(-50%); display:flex; gap:6px; padding:6px 9px; border-radius:20px; background:rgba(11,53,88,.28); }
+  .cdots button { width:7px; height:7px; padding:0; border:0; border-radius:4px; background:rgba(255,255,255,.75); transition:width .35s cubic-bezier(.22,1,.36,1), background .2s; }
   .cdots button[aria-current="true"] { width:20px; background:#fff; }
-  .cbtn { display:none; position:absolute; top:50%; width:38px; height:38px; margin-top:-19px; border:0; border-radius:50%; background:rgba(255,255,255,.6); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); color:var(--ink); font-size:22px; line-height:1; place-items:center; cursor:pointer; transition:background .2s, transform .2s cubic-bezier(.22,1,.36,1); }
+  .cbtn { display:none; position:absolute; top:50%; width:38px; height:38px; margin-top:-19px; border:0; border-radius:50%; background:rgba(255,255,255,.82); color:var(--ink); font-size:22px; line-height:1; place-items:center; cursor:pointer; transition:background .2s; }
   .cbtn:hover { background:#fff; }
-  dialog#lb { width:100%; height:100%; max-width:none; max-height:none; margin:0; border:0; border-radius:0; padding:0; overflow:hidden; background:rgba(8,16,30,.9); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); color:#fff; box-shadow:none; }
-  dialog#lb[open] { animation:fade .25s ease; }
-  .lbbar { position:absolute; top:0; left:0; right:0; z-index:2; display:flex; justify-content:space-between; align-items:center; padding:calc(12px + env(safe-area-inset-top,0px)) 14px 12px; pointer-events:none; }
-  .lbbar span { background:rgba(255,255,255,.16); border-radius:20px; padding:5px 12px; font-size:13px; font-weight:600; }
-  .lbbar button { pointer-events:auto; width:40px; height:40px; border:0; border-radius:50%; background:rgba(255,255,255,.16); color:#fff; font-size:18px; cursor:pointer; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
-  .lbtrack { display:flex; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; overscroll-behavior:contain; }
-  .lbtrack::-webkit-scrollbar { display:none; }
-  dialog#lb.zoomed .lbtrack { overflow-x:hidden; scroll-snap-type:none; }
-  .lbslide { flex:0 0 100%; height:100%; display:flex; overflow:hidden; scroll-snap-align:center; scroll-snap-stop:always; padding:60px 0 24px; box-sizing:border-box; }
-  .lbslide img { max-width:100%; max-height:100%; margin:auto; object-fit:contain; cursor:zoom-in; user-select:none; -webkit-user-drag:none; }
-  .lbslide.zoomed { display:block; overflow:auto; padding:0; -webkit-overflow-scrolling:touch; }
-  .lbslide.zoomed img { max-width:none; max-height:none; width:240%; height:auto; margin:0; display:block; cursor:zoom-out; }
   .cbtn.prev { left:12px; } .cbtn.next { right:12px; }
   @media (hover:hover) { .cbtn { display:grid; } }
-  .hero h1 { margin:0 0 18px; font-family:var(--display); font-weight:800; font-size:clamp(28px,6.5vw,38px); line-height:1.1; letter-spacing:-.03em; }
-  #days { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; scroll-padding-inline:6px; padding:6px 6px 8px; margin:0 -6px; scrollbar-width:none; }
+
+  /* reservation: title + week strip (sits under the carousel, or under the header when there is none) */
+  .reserve h1 { margin:18px 0 12px; }
+  #carWrap:not([hidden]) + .reserve h1 { margin-top:22px; }
+  #days { position:relative; display:flex; gap:8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; scroll-padding-inline:6px; padding:6px 6px 8px; margin:0 -6px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
   #days::-webkit-scrollbar { display:none; }
-  .day { flex:0 0 70px; min-height:72px; scroll-snap-align:start; border:0; border-radius:12px; padding:9px 4px; background:#e0ecff; color:#0052cc; cursor:pointer; text-align:center; transition:transform .15s, box-shadow .15s, filter .15s; }
-  .day:hover { filter:brightness(.97); }
+  .day { flex:0 0 70px; min-height:72px; scroll-snap-align:start; border:0; border-radius:12px; padding:9px 4px; background:#e0ecff; color:#0052cc; cursor:pointer; text-align:center; transition:transform .18s, box-shadow .18s; }
   .day .dn, .day .dc { display:block; font-size:11.5px; font-weight:600; opacity:.85; }
   .day .dd { display:block; font-family:var(--display); font-weight:700; font-size:24px; line-height:1.1; margin:1px 0 2px; letter-spacing:-.02em; }
   .day.ok   { background:#e0ecff; color:#0052cc; }
   .day.low  { background:#fff1cc; color:#6b4300; }
   .day.none { background:#fdeaed; color:#a1283b; }
   .day[aria-pressed="true"] { transform:translateY(-2px); box-shadow:0 0 0 2px var(--blue); }
+  @media (hover:hover) { .day:hover { filter:brightness(.97); } }
 
   /* time cards */
-  main.wrap { padding-top:0; padding-bottom:16px; }
-  .head { padding-top:4px; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+  main.wrap { padding-top:6px; padding-bottom:16px; }
+  .head { padding-top:4px; display:flex; align-items:baseline; justify-content:space-between; gap:4px 12px; flex-wrap:wrap; margin-bottom:6px; }
   .head h2 { margin:0; font-family:var(--display); font-size:20px; font-weight:700; letter-spacing:-.02em; }
   .head span { color:var(--muted); font-size:14px; font-weight:500; }
   .legend { display:flex; gap:18px; font-size:13px; color:var(--muted); margin:0 0 16px; }
-  .legend i { display:inline-block; width:14px; height:14px; border-radius:4px; margin-right:6px; vertical-align:-2px; box-sizing:border-box; }
+  .legend i { display:inline-block; width:14px; height:14px; border-radius:4px; margin-right:6px; vertical-align:-2px; }
   .legend .l-free { background:#fff; border:1.5px solid var(--blue); }
   .legend .l-taken { background:#e9ecf0; }
 
-  #slots { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
-  .slot { border:1px solid transparent; border-radius:14px; padding:13px 14px 15px; text-align:left; min-height:82px; display:flex; flex-direction:column; justify-content:space-between; gap:14px;
-    -webkit-backdrop-filter:blur(12px) saturate(160%); backdrop-filter:blur(12px) saturate(160%);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.75), 0 2px 10px rgba(71,103,136,.08); }
-  .slot.in { animation:slotIn .6s cubic-bezier(.22,1,.36,1) backwards; animation-delay:calc(var(--i, 0) * 45ms); }
-  @keyframes slotIn { from { opacity:0; transform:translate3d(0,16px,0) scale(.96); } }
+  #slots { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; min-height:276px; align-content:start; }
+  .slot { border:1px solid transparent; border-radius:14px; padding:13px 14px 15px; text-align:left; min-height:82px; display:flex; flex-direction:column; justify-content:space-between; gap:14px; box-shadow:inset 0 1px 0 rgba(255,255,255,.75), 0 2px 10px rgba(71,103,136,.08); }
+  .slot.in { animation:slotIn .45s cubic-bezier(.22,1,.36,1) backwards; animation-delay:calc(var(--i, 0) * 30ms); }
+  @keyframes slotIn { from { opacity:0; transform:translate3d(0,12px,0); } }
   .slot small { display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; }
   .slot small::before { content:""; width:8px; height:8px; border-radius:50%; background:currentColor; }
   .slot.taken small::before { background:transparent; border:1.5px solid currentColor; }
   .slot b { font-family:var(--display); font-size:18px; font-weight:700; line-height:1; letter-spacing:-.02em; white-space:nowrap; }
-  .slot.free { background:rgba(255,255,255,.58); color:var(--blue); border-color:rgba(0,107,255,.45); cursor:pointer; transition:transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s cubic-bezier(.22,1,.36,1), background .2s, color .2s; }
+  .slot.free { background:rgba(255,255,255,.86); color:var(--blue); border-color:rgba(0,107,255,.45); cursor:pointer; transition:transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s, background .15s, color .15s; }
   @media (hover:hover) { .slot.free:hover { background:var(--blue); color:#fff; transform:translate3d(0,-2px,0); box-shadow:var(--lift); } }
-  .slot.free:active { transform:scale(.97); background:var(--blue); color:#fff; transition-duration:.08s; }
-  .slot.taken { background:rgba(226,231,238,.5); color:#98a4b3; cursor:not-allowed; }
+  .slot.free:active { transform:scale(.97); background:var(--blue); color:#fff; transition-duration:.06s; }
+  .slot.taken { background:rgba(226,231,238,.7); color:#98a4b3; cursor:not-allowed; }
 
-  .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px; }
+  .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px)); }
 
   .skel { height:82px; border-radius:12px; background:linear-gradient(90deg,#eceff3,#f6f7f9,#eceff3); background-size:200% 100%; animation:sh 1.2s linear infinite; }
   @keyframes sh { to { background-position:-200% 0; } }
@@ -119,15 +114,15 @@
   .btn.ghost:hover { background:#e6eaef; }
 
   /* dialogs */
-  dialog { border:0; padding:0; border-radius:16px; width:min(420px,calc(100% - 32px)); max-height:calc(100% - 32px); overflow:auto; background:rgba(255,255,255,.78); -webkit-backdrop-filter:blur(22px) saturate(170%); backdrop-filter:blur(22px) saturate(170%); border:1px solid rgba(255,255,255,.7); color:var(--ink); box-shadow:0 24px 60px rgba(11,53,88,.28); }
-  dialog[open] { animation:pop .22s cubic-bezier(.2,.9,.3,1.2); }
-  dialog::backdrop { background:rgba(11,53,88,.45); backdrop-filter:blur(3px); animation:fade .2s; }
-  @keyframes pop { from { opacity:0; transform:scale(.94) translateY(8px); } }
+  dialog { border:0; padding:0; border-radius:16px; width:min(420px,calc(100% - 32px)); max-height:calc(100% - 32px); max-height:calc(100dvh - 32px); overflow:auto; overscroll-behavior:contain; background:#fff; color:var(--ink); box-shadow:0 24px 60px rgba(11,53,88,.28); }
+  dialog[open] { animation:pop .2s cubic-bezier(.2,.9,.3,1.1); }
+  dialog::backdrop { background:rgba(11,53,88,.55); animation:fade .2s; }
+  @keyframes pop { from { opacity:0; transform:scale(.95) translateY(8px); } }
   @keyframes fade { from { opacity:0; } }
-  .ticket { background:rgba(11,53,88,.9); color:#fff; padding:22px 22px 18px; position:relative; }
+  .ticket { background:#0b3558; color:#fff; padding:22px 22px 18px; position:relative; }
   .ticket .when { margin:0; font-size:14px; color:#a9bbd0; font-weight:500; padding-right:40px; }
   .ticket h2 { margin:4px 0 0; font-family:var(--display); font-size:32px; font-weight:800; line-height:1.05; letter-spacing:-.03em; white-space:nowrap; }
-  .x { position:absolute; top:12px; right:12px; width:36px; height:36px; border:0; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:20px; line-height:1; cursor:pointer; }
+  .x { position:absolute; top:10px; right:10px; width:44px; height:44px; border:0; border-radius:50%; background:rgba(255,255,255,.14); color:#fff; font-size:22px; line-height:1; cursor:pointer; }
   .x:hover { background:rgba(255,255,255,.26); }
   form, .done { padding:20px 22px 24px; }
   .field { margin-bottom:14px; }
@@ -152,16 +147,23 @@
   .done p { margin:0 0 4px; }
   .done .sum { font-weight:700; }
   .done .jam { color:var(--muted); font-weight:600; }
-  .done .addr { display:inline-block; margin-top:14px; color:var(--blue); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+  .done .addr { display:inline-block; margin-top:14px; padding:6px 0; color:var(--blue); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
   .done .addr:hover { color:var(--blue-deep); }
   .done .btn { width:100%; margin-top:20px; }
 
-  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
-    .hero { background:#fff; }
-    .slot.free { background:#fff; }
-    .slot.taken { background:#eceff3; }
-    dialog { background:#fff; }
-  }
+  /* photo viewer */
+  dialog#lb { width:100%; height:100%; height:100dvh; max-width:none; max-height:none; margin:0; border:0; border-radius:0; padding:0; overflow:hidden; background:rgba(8,16,30,.96); color:#fff; box-shadow:none; }
+  dialog#lb[open] { animation:fade .2s ease; }
+  .lbbar { position:absolute; top:0; left:0; right:0; z-index:2; display:flex; justify-content:space-between; align-items:center; padding:calc(12px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-right,0px)) 12px calc(14px + env(safe-area-inset-left,0px)); pointer-events:none; }
+  .lbbar span { background:rgba(255,255,255,.16); border-radius:20px; padding:5px 12px; font-size:13px; font-weight:600; }
+  .lbbar button { pointer-events:auto; width:44px; height:44px; border:0; border-radius:50%; background:rgba(255,255,255,.16); color:#fff; font-size:18px; cursor:pointer; }
+  .lbtrack { display:flex; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+  .lbtrack::-webkit-scrollbar { display:none; }
+  dialog#lb.zoomed .lbtrack { overflow-x:hidden; scroll-snap-type:none; }
+  .lbslide { flex:0 0 100%; height:100%; display:flex; overflow:hidden; scroll-snap-align:center; scroll-snap-stop:always; padding:64px 0 calc(24px + env(safe-area-inset-bottom,0px)); box-sizing:border-box; }
+  .lbslide img { max-width:100%; max-height:100%; margin:auto; object-fit:contain; cursor:zoom-in; user-select:none; -webkit-user-select:none; -webkit-user-drag:none; }
+  .lbslide.zoomed { display:block; overflow:auto; padding:0; -webkit-overflow-scrolling:touch; }
+  .lbslide.zoomed img { max-width:none; max-height:none; width:240%; height:auto; margin:0; display:block; cursor:zoom-out; }
 
   @media (prefers-reduced-motion:reduce) {
     *, *::before, *::after { animation:none !important; transition:none !important; }
@@ -173,15 +175,19 @@
 
 <header class="hero">
   <div class="wrap">
-    <div class="brand"><span class="bl"><span class="logo"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor" stroke="none"><rect x="10.43" y="1.10" width="4.0" height="1.65" rx="0.82" transform="rotate(-5.0 12.43 1.93)"/><rect x="10.11" y="3.30" width="4.4" height="1.81" rx="0.90" transform="rotate(6.6 12.31 4.21)"/><rect x="8.62" y="5.66" width="4.8" height="1.97" rx="0.98" transform="rotate(10.9 11.02 6.65)"/><rect x="7.52" y="6.25" width="1.70" height=".8" rx=".4" transform="rotate(22.9 11.02 6.65)"/><rect x="7.09" y="8.18" width="5.6" height="2.13" rx="1.06" transform="rotate(3.1 9.89 9.24)"/><rect x="5.89" y="8.84" width="1.80" height=".8" rx=".4" transform="rotate(15.1 9.89 9.24)"/><rect x="7.26" y="10.86" width="6.4" height="2.29" rx="1.15" transform="rotate(-9.4 10.46 12.00)"/><rect x="5.96" y="11.60" width="1.90" height=".8" rx=".4" transform="rotate(2.6 10.46 12.00)"/><rect x="8.52" y="13.70" width="7.2" height="2.45" rx="1.23" transform="rotate(-8.4 12.12 14.92)"/><rect x="7.12" y="14.52" width="2.00" height=".8" rx=".4" transform="rotate(3.6 12.12 14.92)"/><rect x="8.33" y="16.70" width="8.0" height="2.61" rx="1.30" transform="rotate(6.4 12.33 18.00)"/><rect x="6.83" y="17.61" width="2.10" height=".8" rx=".4" transform="rotate(18.4 12.33 18.00)"/></g><g fill="currentColor"><path transform="rotate(9.8 10.55 21.31)" stroke="currentColor" stroke-width=".8" stroke-linejoin="round" d="M6.95 19.91H14.15L11.95 22.31Q10.55 22.81 9.15 22.31Z"/></g><path d="M20 2.4v4.4M17.8 4.6h4.4" stroke-width="1.7"/></svg></span>Hen's Bone Setting</span><a class="cta" href="https://wa.me/6282178570909" target="_blank" rel="noopener">Hubungi Kami</a></div>
-    <h1>Reservasi</h1>
-    <div id="days" role="group" aria-label="Pilih hari"></div>
+    <div class="brand"><span class="bl"><span class="logo"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor" stroke="none"><rect x="10.43" y="1.10" width="4.0" height="1.65" rx="0.82" transform="rotate(-5.0 12.43 1.93)"/><rect x="10.11" y="3.30" width="4.4" height="1.81" rx="0.90" transform="rotate(6.6 12.31 4.21)"/><rect x="8.62" y="5.66" width="4.8" height="1.97" rx="0.98" transform="rotate(10.9 11.02 6.65)"/><rect x="7.52" y="6.25" width="1.70" height=".8" rx=".4" transform="rotate(22.9 11.02 6.65)"/><rect x="7.09" y="8.18" width="5.6" height="2.13" rx="1.06" transform="rotate(3.1 9.89 9.24)"/><rect x="5.89" y="8.84" width="1.80" height=".8" rx=".4" transform="rotate(15.1 9.89 9.24)"/><rect x="7.26" y="10.86" width="6.4" height="2.29" rx="1.15" transform="rotate(-9.4 10.46 12.00)"/><rect x="5.96" y="11.60" width="1.90" height=".8" rx=".4" transform="rotate(2.6 10.46 12.00)"/><rect x="8.52" y="13.70" width="7.2" height="2.45" rx="1.23" transform="rotate(-8.4 12.12 14.92)"/><rect x="7.12" y="14.52" width="2.00" height=".8" rx=".4" transform="rotate(3.6 12.12 14.92)"/><rect x="8.33" y="16.70" width="8.0" height="2.61" rx="1.30" transform="rotate(6.4 12.33 18.00)"/><rect x="6.83" y="17.61" width="2.10" height=".8" rx=".4" transform="rotate(18.4 12.33 18.00)"/></g><g fill="currentColor"><path transform="rotate(9.8 10.55 21.31)" stroke="currentColor" stroke-width=".8" stroke-linejoin="round" d="M6.95 19.91H14.15L11.95 22.31Q10.55 22.81 9.15 22.31Z"/></g><path d="M20 2.4v4.4M17.8 4.6h4.4" stroke-width="1.7"/></svg></span><span class="bn">Hen's Bone Setting</span></span><a class="cta" href="https://wa.me/6282178570909" target="_blank" rel="noopener">Hubungi Kami</a></div>
   </div>
 </header>
 
-<div class="wrap">
+<div class="wrap" id="carWrap">
+  <h2 class="ctitle">Pengumuman</h2>
   <section class="carousel loading" id="carousel" aria-roledescription="carousel" aria-label="Galeri foto"></section>
 </div>
+
+<section class="wrap reserve">
+  <h1>Reservasi</h1>
+  <div id="days" role="group" aria-label="Pilih hari"></div>
+</section>
 
 <main class="wrap">
   <div class="head">
@@ -248,9 +254,10 @@
 <script src="config.js"></script>
 <script>
 const $ = s => document.querySelector(s);
-const dlg = $('#dlg');
+const dlg = $('#dlg'), dup = $('#dup'), lb = $('#lb'), lbTrack = $('#lbTrack');
 const LOCALE = 'id-ID';
-let cfg = null, taken = new Set(), selDate = null, picked = null, renderedFor = null;
+const canHover = matchMedia('(hover:hover)').matches;     // phones: no auto-focus, so the keyboard does not fight the dialog
+let cfg = null, taken = new Set(), selDate = null, picked = null;
 
 // 0812 3456 7890 -> +6281234567890 ; 62812... -> +62812... ; 0062... -> +62...
 function normPhone(p) {
@@ -271,7 +278,6 @@ function endTime(t, mins) {
 }
 function range(t) { return t + ' - ' + endTime(t, cfg.slotMinutes); }
 function fmt(ymd, opts) { return localDate(ymd).toLocaleDateString(LOCALE, opts); }
-function dayLabel(ymd) { return fmt(ymd, { weekday: 'long', day: 'numeric', month: 'long' }); }
 function fullDate(ymd) { return fmt(ymd, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
 function isFree(date, t) { const k = date + ' ' + t; return !taken.has(k) && k > cfg.now; }
 function openCount(date) { return cfg.times.filter(t => isFree(date, t)).length; }
@@ -291,7 +297,6 @@ function getMine() {
   } catch (e) {}
   return null;
 }
-const dup = $('#dup');
 let pending = null;
 function askChange(date, time) {
   const m = getMine();
@@ -307,12 +312,15 @@ $('#dupYes').onclick = () => {
   if (p) openDialog(p.date, p.time, p.old);
 };
 
+/* ---- schedule: built once, then updated in place (no flicker, no lost taps, no scroll reset) ---- */
+let dayEls = [], slotEls = [], daysKey = null, timesKey = null, lastSig = null, shownDay = null;
+
 function showSkeleton() {
-  const s = $('#slots'); s.replaceChildren();
+  const s = $('#slots'); s.replaceChildren(); slotEls = []; timesKey = null;
   for (let i = 0; i < 8; i++) s.append(el('div', 'skel'));
 }
 function showNote(msg, retry) {
-  const s = $('#slots'); s.replaceChildren();
+  const s = $('#slots'); s.replaceChildren(); slotEls = []; timesKey = null;
   const n = el('div', 'note', msg);
   if (retry) { const b = el('button', 'btn primary', 'Coba lagi'); b.type = 'button'; b.onclick = () => { showSkeleton(); load(); }; n.append(document.createElement('br'), b); }
   s.append(n);
@@ -333,40 +341,70 @@ async function load() {
   }
 }
 
-function render() {
-  const days = $('#days'); days.replaceChildren();
+function buildDays() {
+  const strip = $('#days'); strip.replaceChildren(); dayEls = [];
   for (let i = 0; i < cfg.days; i++) {
-    const ymd = addDays(cfg.today, i), n = openCount(ymd);
-    const b = el('button', 'day ' + (n === 0 ? 'none' : n <= 2 ? 'low' : 'ok'));
+    const ymd = addDays(cfg.today, i);
+    const b = el('button', 'day'), c = el('span', 'dc');
     b.type = 'button';
-    b.setAttribute('aria-pressed', ymd === selDate);
-    b.setAttribute('aria-label', fullDate(ymd) + ', ' + n + ' jam tersedia');
-    b.append(el('span', 'dn', i === 0 ? 'Hari ini' : fmt(ymd, { weekday: 'short' })),
-             el('span', 'dd', localDate(ymd).getDate()),
-             el('span', 'dc', n ? n + ' kosong' : 'Penuh'));
-    b.onclick = () => { selDate = ymd; render(); };
-    days.append(b);
+    b.append(el('span', 'dn', i === 0 ? 'Hari ini' : fmt(ymd, { weekday: 'short' })), el('span', 'dd', localDate(ymd).getDate()), c);
+    b.onclick = () => {
+      if (selDate === ymd) return;
+      selDate = ymd; render();
+      strip.scrollTo({ left: b.offsetLeft - (strip.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' });
+    };
+    strip.append(b); dayEls.push({ b, c, ymd });
   }
-  $('#dayTitle').textContent = fullDate(selDate);
-  const n = openCount(selDate);
-  $('#dayCount').textContent = n ? n + ' dari ' + cfg.times.length + ' jam tersedia' : 'Semua jam sudah terisi';
-
-  const animate = renderedFor !== selDate; renderedFor = selDate;
-  const list = $('#slots'); list.replaceChildren();
-  cfg.times.forEach((t, i) => {
-    const free = isFree(selDate, t);
-    const b = el('button', 'slot ' + (free ? 'free' : 'taken'));
+  daysKey = cfg.today + '|' + cfg.days;
+}
+function buildSlots() {
+  const list = $('#slots'); list.replaceChildren(); slotEls = [];
+  cfg.times.forEach(t => {
+    const b = el('button', 'slot'), s = el('small');
     b.type = 'button';
-    b.disabled = !free;
-    b.append(el('small', null, free ? 'Tersedia' : 'Tidak tersedia'), el('b', null, range(t)));
-    b.setAttribute('aria-label', range(t) + (free ? ', tersedia' : ', tidak tersedia'));
-    if (animate) { b.classList.add('in'); b.style.setProperty('--i', Math.min(i, 10)); }
-    if (free) b.onclick = () => getMine() ? askChange(selDate, t) : openDialog(selDate, t);
-    list.append(b);
+    b.append(s, el('b', null, range(t)));
+    b.onclick = () => { if (!isFree(selDate, t)) return; getMine() ? askChange(selDate, t) : openDialog(selDate, t); };
+    list.append(b); slotEls.push({ b, s, t });
   });
+  timesKey = cfg.times.join() + '|' + cfg.slotMinutes;
+}
+function animateSlots() {
+  slotEls.forEach(x => x.b.classList.remove('in'));
+  void $('#slots').offsetWidth;                            // one reflow restarts every animation together
+  slotEls.forEach((x, i) => { x.b.style.setProperty('--i', Math.min(i, 10)); x.b.classList.add('in'); });
 }
 
-/* ---- dialog ---- */
+function render() {
+  if (daysKey !== cfg.today + '|' + cfg.days) buildDays();
+  if (timesKey !== cfg.times.join() + '|' + cfg.slotMinutes) { buildSlots(); lastSig = null; shownDay = null; }
+  const counts = dayEls.map(d => openCount(d.ymd));
+  const flags = cfg.times.map(t => isFree(selDate, t) ? 1 : 0).join('');
+  const sig = selDate + '|' + counts.join() + '|' + flags;
+  if (sig === lastSig) return;                             // nothing changed: touch nothing
+  lastSig = sig;
+
+  dayEls.forEach((d, i) => {
+    const n = counts[i];
+    d.b.className = 'day ' + (n === 0 ? 'none' : n <= 2 ? 'low' : 'ok');
+    d.b.setAttribute('aria-pressed', d.ymd === selDate);
+    d.b.setAttribute('aria-label', fullDate(d.ymd) + ', ' + n + ' jam tersedia');
+    d.c.textContent = n ? n + ' kosong' : 'Penuh';
+  });
+  const n = counts[dayEls.findIndex(d => d.ymd === selDate)];
+  $('#dayTitle').textContent = fullDate(selDate);
+  $('#dayCount').textContent = n ? n + ' dari ' + cfg.times.length + ' jam tersedia' : 'Semua jam sudah terisi';
+
+  slotEls.forEach(x => {
+    const free = isFree(selDate, x.t);
+    x.b.classList.toggle('free', free); x.b.classList.toggle('taken', !free);
+    x.b.disabled = !free;
+    x.s.textContent = free ? 'Tersedia' : 'Tidak tersedia';
+    x.b.setAttribute('aria-label', range(x.t) + (free ? ', tersedia' : ', tidak tersedia'));
+  });
+  if (shownDay !== selDate) { shownDay = selDate; animateSlots(); }
+}
+
+/* ---- booking dialog ---- */
 function setErr(id, msg) {
   $('#' + id).textContent = msg || '';
   const input = { nameErr: '#name', phoneErr: '#phone' }[id];
@@ -382,7 +420,7 @@ function openDialog(date, time, old) {
   $('#formView').hidden = false; $('#doneView').hidden = true;
   $('#save').disabled = false; $('#save').textContent = 'Simpan';
   dlg.showModal();
-  $('#name').focus();
+  if (canHover) $('#name').focus(); else $('#close').blur();
 }
 function closeDialog() { if (dlg.open) dlg.close(); }
 dlg.addEventListener('close', () => { picked = null; });
@@ -442,35 +480,41 @@ $('#form').addEventListener('submit', async e => {
 });
 
 /* ---- carousel (images are managed from admin.html) ---- */
-const CAR = $('#carousel');
+const CAR = $('#carousel'), carWrap = $('#carWrap');
+function setCar(on) { CAR.hidden = !on; carWrap.hidden = !on; }   // "Pengumuman" label follows the carousel; "Reservasi" moves up when it is hidden
 function driveUrl(id, w) { return 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + w; }
-let carPause = 0, lbImages = [];
-try { CAR.hidden = localStorage.getItem('hbs_car') === '0'; } catch (e) {}
+let carPause = 0, lbImages = [], carTimer = 0, carVisible = true;
+try { setCar(localStorage.getItem('hbs_car') !== '0'); } catch (e) {}
 function rememberCar(on) { try { localStorage.setItem('hbs_car', on ? '1' : '0'); } catch (e) {} }
 async function loadCarousel() {
-  if (!API_URL || API_URL.startsWith('PASTE')) { CAR.hidden = true; return; }
+  if (!API_URL || API_URL.startsWith('PASTE')) { setCar(false); return; }
   try {
     const d = await (await fetch(API_URL + '?action=site')).json();
     if (!d.ok) throw new Error(d.error);
     if (d.footer) $('#foot').textContent = d.footer;
-    if (!d.carouselEnabled || !d.images.length) { rememberCar(false); CAR.hidden = true; return; }
-    rememberCar(true); CAR.hidden = false;
+    if (!d.carouselEnabled || !d.images.length) { rememberCar(false); setCar(false); return; }
+    rememberCar(true); setCar(true);
     lbImages = d.images;
     buildCarousel(d.images);
-  } catch (e) { CAR.hidden = true; }
+  } catch (e) { setCar(false); }
 }
 function buildCarousel(images) {
+  clearInterval(carTimer);
   CAR.replaceChildren();
-  const track = el('div', 'track');
+  const track = el('div', 'track'), imgs = [];
   images.forEach((im, i) => {
     const s = el('div', 'slide'), img = document.createElement('img');
-    img.src = driveUrl(im.fileId, 1600);
+    img.src = driveUrl(im.fileId, 1200);                     // sharp on phones, much lighter than 1600
     img.alt = 'Foto ' + (i + 1);
     img.decoding = 'async'; img.draggable = false;
     img.loading = i ? 'lazy' : 'eager';
-    img.onerror = () => { if (!img.dataset.f) { img.dataset.f = 1; img.src = 'https://lh3.googleusercontent.com/d/' + im.fileId + '=w1600'; } };
-    s.append(img); s.onclick = () => openLightbox(i); track.append(s);
+    if (i) img.setAttribute('fetchpriority', 'low');
+    img.onerror = () => { if (!img.dataset.f) { img.dataset.f = 1; img.src = 'https://lh3.googleusercontent.com/d/' + im.fileId + '=w1200'; } };
+    s.append(img); s.onclick = () => openLightbox(i); track.append(s); imgs.push(img);
   });
+  // first photo first; then fetch the rest so swiping never shows a blank slide
+  const warm = () => imgs.slice(1).forEach(x => { x.loading = 'eager'; });
+  if (imgs[0].complete) warm(); else imgs[0].addEventListener('load', warm, { once: true });
   CAR.append(track);
   CAR.classList.remove('loading');
   const n = images.length;
@@ -486,19 +530,19 @@ function buildCarousel(images) {
   next.onclick = () => { carPause = Date.now() + 8000; go(idx() + 1); };
   CAR.append(prev, next, dots);
 
-  let raf = 0;
-  const sync = () => { const c = idx(); dotBtns.forEach((b, i) => b.setAttribute('aria-current', i === c)); };
-  track.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(sync); }, { passive: true });
+  let raf = 0, cur = -1;
+  const sync = () => { const c = idx(); if (c === cur) return; cur = c; dotBtns.forEach((b, i) => b.setAttribute('aria-current', i === c)); };
+  track.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; sync(); }); }, { passive: true });
   ['pointerdown', 'touchstart', 'wheel'].forEach(ev => track.addEventListener(ev, () => { carPause = Date.now() + 8000; }, { passive: true }));
   CAR.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') carPause = Date.now() + 8000; });
   sync();
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => { carVisible = es[0].isIntersecting; }, { threshold: .4 }).observe(CAR);
   if (!matchMedia('(prefers-reduced-motion:reduce)').matches) {
-    setInterval(() => { if (!document.hidden && !lb.open && Date.now() > carPause) go(idx() + 1); }, 5000);
+    carTimer = setInterval(() => { if (!document.hidden && carVisible && !lb.open && Date.now() > carPause) go(idx() + 1); }, 5000);
   }
 }
 
 /* ---- lightbox: swipe between photos, tap a photo to zoom ---- */
-const lb = $('#lb'), lbTrack = $('#lbTrack');
 function openLightbox(i) {
   lbTrack.replaceChildren(); lb.classList.remove('zoomed');
   lbImages.forEach((im, k) => {
@@ -522,8 +566,9 @@ function zoomTap(s, e) {
   s.scrollLeft = fx * s.scrollWidth - s.clientWidth / 2;  // keep the tapped spot under the finger
   s.scrollTop = fy * s.scrollHeight - s.clientHeight / 2;
 }
+let lbRaf = 0;
 function lbCount() { $('#lbCount').textContent = (Math.round(lbTrack.scrollLeft / lbTrack.clientWidth) + 1) + ' / ' + lbImages.length; }
-lbTrack.addEventListener('scroll', () => requestAnimationFrame(lbCount), { passive: true });
+lbTrack.addEventListener('scroll', () => { if (!lbRaf) lbRaf = requestAnimationFrame(() => { lbRaf = 0; lbCount(); }); }, { passive: true });
 $('#lbX').onclick = () => lb.close();
 lb.addEventListener('close', () => { lb.classList.remove('zoomed'); carPause = Date.now() + 8000; });
 lb.addEventListener('keydown', e => {
@@ -546,7 +591,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) idle
 showSkeleton();
 load();
 loadCarousel();
-setInterval(() => { if (!dlg.open) load(); }, 30000);
+setInterval(() => { if (!dlg.open && !document.hidden) load(); }, 30000);
 </script>
 </body>
 </html>
