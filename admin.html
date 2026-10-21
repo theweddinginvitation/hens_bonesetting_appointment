@@ -75,11 +75,16 @@
 
   /* week grid (wide screens) */
   main.wrap { padding-top:22px; padding-bottom:16px; }
-  .fnav { position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:15; display:flex; gap:4px; padding:5px; border-radius:20px; background:rgba(255,255,255,.74); -webkit-backdrop-filter:blur(18px) saturate(170%); backdrop-filter:blur(18px) saturate(170%); box-shadow:0 0 0 1px rgba(34,42,53,.08), 0 10px 30px rgba(11,53,88,.2); }
-  .fnav button { display:inline-flex; align-items:center; gap:7px; border:0; background:transparent; color:var(--muted); font-weight:600; font-size:14px; padding:11px 18px; border-radius:15px; white-space:nowrap; touch-action:manipulation; transition:background .3s cubic-bezier(.22,1,.36,1), color .2s; }
+  .fnav { position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:15; display:grid; grid-template-columns:1fr 1fr; padding:5px; border-radius:999px; background:rgba(255,255,255,.74); -webkit-backdrop-filter:blur(18px) saturate(170%); backdrop-filter:blur(18px) saturate(170%); box-shadow:0 0 0 1px rgba(34,42,53,.08), 0 10px 30px rgba(11,53,88,.2); touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab; }
+  .fnav.drag { cursor:grabbing; }
+  .fnav .thumb { position:absolute; top:5px; bottom:5px; left:5px; width:calc((100% - 10px) / 2); border-radius:999px; background:var(--blue); box-shadow:0 4px 12px rgba(0,107,255,.35); transition:transform .55s cubic-bezier(.22,1,.36,1); will-change:transform; }
+  .fnav.drag .thumb { transition:none; }
+  .fnav button { position:relative; z-index:1; display:inline-flex; align-items:center; justify-content:center; gap:7px; border:0; background:transparent; color:var(--muted); font-weight:600; font-size:14px; padding:11px 20px; border-radius:999px; white-space:nowrap; touch-action:manipulation; transition:color .35s cubic-bezier(.22,1,.36,1); }
   .fnav button svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-  @media (hover:hover) { .fnav button:hover { background:var(--chip); } }
-  .fnav button[aria-current="page"] { background:var(--blue); color:#fff; }
+  @media (hover:hover) { .fnav button:not([aria-current="page"]):hover { color:var(--ink); } }
+  .fnav button[aria-current="page"] { color:#fff; }
+  .pg-in { animation:pgIn .55s cubic-bezier(.22,1,.36,1); }
+  @keyframes pgIn { from { opacity:0; transform:translate3d(var(--dx,0),10px,0); } }
   .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px calc(20px + 72px + env(safe-area-inset-bottom,0px)); }
   #grid { display:grid; grid-template-columns:62px repeat(7,minmax(150px,1fr)); gap:8px; }
   .dh { padding:8px 6px; text-align:center; border-radius:10px; background:var(--surface); box-shadow:var(--ring); display:flex; flex-direction:column; }
@@ -246,6 +251,7 @@
     </section>
   </main>
   <nav class="fnav" aria-label="Pages">
+    <span class="thumb" aria-hidden="true"></span>
     <button type="button" id="navAppt" aria-current="page">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Reservation
     </button>
@@ -537,16 +543,63 @@ $('#fSave').onclick = saveFooter;
 $('#fText').addEventListener('keydown', e => { if (e.key === 'Enter') saveFooter(); });
 
 /* ---- pages: appointments / setting (#setting) ---- */
+let curSet = null;
+const nav = $('.fnav'), thumb = $('.fnav .thumb');
+const slideThumb = i => { thumb.style.transform = 'translateX(' + (i * 100) + '%)'; };
 function applyPage() {
   const set = location.hash === '#setting';
   $('#apptHead').hidden = set; $('#apptMain').hidden = set; $('#setMain').hidden = !set;
   $('#navAppt').setAttribute('aria-current', set ? 'false' : 'page');
   $('#navSet').setAttribute('aria-current', set ? 'page' : 'false');
+  slideThumb(set ? 1 : 0);
   window.scrollTo(0, 0);
+  if (curSet !== null && curSet !== set) {            // animate only when the page actually changes
+    const targets = set ? [$('#setMain')] : [$('#apptHead'), $('#apptMain')];
+    targets.forEach(t => {
+      t.classList.remove('pg-in'); t.style.setProperty('--dx', (set ? 28 : -28) + 'px');
+      void t.offsetWidth; t.classList.add('pg-in');
+      t.addEventListener('animationend', () => t.classList.remove('pg-in'), { once: true });
+    });
+  }
+  curSet = set;
   if (set) loadSettings();
 }
-$('#navAppt').onclick = () => { if (location.hash === '#setting') location.hash = ''; };
-$('#navSet').onclick = () => { location.hash = '#setting'; };
+function goPage(toSet) {
+  if ((location.hash === '#setting') === toSet) { slideThumb(toSet ? 1 : 0); return; }
+  location.hash = toSet ? '#setting' : '';
+}
+$('#navAppt').onclick = () => { if (!nav.dataset.moved) goPage(false); };
+$('#navSet').onclick = () => { if (!nav.dataset.moved) goPage(true); };
+
+// Swipe (drag) the bar: the blue pill follows your finger and snaps to the nearest page.
+let dragX = null, dragStart = 0, dragW = 0, dragOff = 0;
+nav.addEventListener('pointerdown', e => {
+  dragX = e.clientX; dragW = thumb.offsetWidth; dragStart = location.hash === '#setting' ? dragW : 0; dragOff = dragStart;
+  delete nav.dataset.moved;
+});
+nav.addEventListener('pointermove', e => {
+  if (dragX === null) return;
+  const dx = e.clientX - dragX;
+  if (!nav.classList.contains('drag')) {
+    if (Math.abs(dx) < 6) return;
+    nav.classList.add('drag'); nav.dataset.moved = '1'; nav.setPointerCapture(e.pointerId);
+  }
+  dragOff = Math.max(0, Math.min(dragW, dragStart + dx));
+  thumb.style.transform = 'translateX(' + dragOff + 'px)';
+});
+function endDrag(e) {
+  if (dragX === null) return;
+  const dx = e.clientX - dragX, moved = nav.classList.contains('drag');
+  dragX = null; nav.classList.remove('drag');
+  if (!moved) return;
+  const flick = Math.abs(dx) > dragW * 0.3;            // short flick also switches
+  const toSet = flick ? dx > 0 : dragOff > dragW / 2;
+  goPage(toSet);
+  setTimeout(() => { delete nav.dataset.moved; }, 50);
+}
+nav.addEventListener('pointerup', endDrag);
+nav.addEventListener('pointercancel', endDrag);
+
 window.addEventListener('hashchange', () => { if (!$('#app').hidden) applyPage(); });
 
 /* ---- confirm dialog ---- */
