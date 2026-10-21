@@ -49,6 +49,7 @@
   .hero { background:var(--surface); color:var(--ink); padding:18px 0 14px; border-bottom:1px solid var(--line); }
   .top { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid var(--line); }
   .top b { font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; }
+  .topbtns { display:flex; gap:8px; }
   .top b small { font-weight:600; font-size:12px; background:var(--blue-soft); color:var(--blue); padding:3px 9px; border-radius:20px; margin-left:8px; vertical-align:1px; }
   .pill { border:0; border-radius:10px; padding:8px 14px; background:var(--chip); color:var(--ink); font-weight:600; font-size:14px; }
   .pill:hover { background:#e6eaef; }
@@ -144,6 +145,32 @@
   .rrow .ph { font-size:13px; color:var(--muted); }
   .rrow button { border:0; border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:600; background:var(--ok); color:#fff; flex:none; }
   .rempty { padding:14px 12px; color:var(--muted); border-top:1px solid var(--line); }
+  .plist { max-height:50vh; overflow:auto; margin:0 -6px 14px; padding:0 6px; }
+  .prow { display:grid; grid-template-columns:104px 1fr; gap:12px; align-items:center; padding:10px 0; border-top:1px solid var(--line); }
+  .prow img { width:104px; aspect-ratio:16/9; object-fit:cover; border-radius:10px; background:#eceff3; display:block; }
+  .pbtns { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .pbtns .n { font-weight:700; font-size:13px; color:var(--muted); margin-right:4px; }
+  .pbtns button { border:0; border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:600; background:var(--chip); color:var(--ink); }
+  .pbtns button:hover:not(:disabled) { background:#e6eaef; }
+  .pbtns button:disabled { opacity:.4; cursor:not-allowed; }
+  .pbtns .del { background:#fde8ea; color:#b42318; } .pbtns .del:hover:not(:disabled) { background:#fbd5d9; }
+  .pempty { padding:14px 2px; color:var(--muted); border-top:1px solid var(--line); }
+  .padd { display:flex; gap:10px; margin-bottom:14px; }
+  .padd .btn { flex:1; }
+  #setMain { max-width:720px; }
+  .sh { margin:0 0 16px; font-family:var(--display); font-weight:800; font-size:clamp(24px,5vw,32px); letter-spacing:-.03em; }
+  .panel { background:var(--surface); border-radius:16px; box-shadow:var(--ring); padding:18px; margin-bottom:16px; }
+  .panel h2 { margin:0 0 4px; font-family:var(--display); font-size:20px; letter-spacing:-.02em; }
+  .hint2 { margin:0 0 14px; color:var(--muted); font-size:13.5px; }
+  .seg { display:inline-flex; background:var(--chip); border-radius:12px; padding:4px; gap:4px; }
+  .seg button { border:0; background:transparent; border-radius:9px; padding:9px 20px; font-weight:600; font-size:14px; color:var(--muted); transition:background .2s, color .2s; }
+  .seg button[aria-pressed="true"].on { background:var(--ok); color:#fff; }
+  .seg button[aria-pressed="true"].off { background:#fff; color:var(--ink); box-shadow:var(--ring); }
+  .panel.off #pList { opacity:.5; }
+  .frow { display:flex; gap:10px; }
+  .frow input { flex:1; min-width:0; padding:12px 14px; border:1px solid #cdd5de; border-radius:10px; font-size:16px; background:#fff; color:var(--ink); }
+  .frow input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 4px var(--blue-soft); }
+  .frow .btn { padding:12px 20px; }
   .btn.danger { background:#d92d20; color:#fff; } .btn.danger:hover { background:#b42318; }
   #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s; z-index:20; max-width:calc(100% - 32px); }
   #toast.show { opacity:1; }
@@ -168,8 +195,9 @@
     <div class="wrap">
       <div class="top">
         <b>Hen's Bone Setting <small>Admin</small></b>
-        <button class="pill" id="logout" type="button">Log out</button>
+        <div class="topbtns"><button class="pill" id="navBtn" type="button">Setting</button><button class="pill" id="logout" type="button">Log out</button></div>
       </div>
+      <div id="apptHead">
       <div class="row2">
         <h1>Appointments</h1>
         <div class="nav">
@@ -181,11 +209,36 @@
       </div>
       <div class="stats" id="stats"></div>
       <div id="tabs" role="group" aria-label="Choose day"></div>
+      </div>
     </div>
   </header>
-  <main class="wrap">
+  <main class="wrap" id="apptMain">
     <div id="grid"></div>
     <div id="list"></div>
+  </main>
+  <main class="wrap" id="setMain" hidden>
+    <h1 class="sh">Setting</h1>
+    <section class="panel" id="carPanel">
+      <h2>Carousel</h2>
+      <p class="hint2" id="carNote"></p>
+      <div class="seg" role="group" aria-label="Carousel">
+        <button type="button" class="on" id="carOn">Enable</button>
+        <button type="button" class="off" id="carOff">Disable</button>
+      </div>
+      <div class="padd" style="margin-top:16px">
+        <button type="button" class="btn primary" id="pAdd">Add photos</button>
+        <input type="file" id="pFile" accept="image/*" multiple hidden>
+      </div>
+      <div id="pList"></div>
+    </section>
+    <section class="panel">
+      <h2>Footer</h2>
+      <p class="hint2">Text shown at the bottom of the booking page. Leave empty for the default.</p>
+      <div class="frow">
+        <input id="fText" maxlength="200" placeholder="Hen's Bone Setting" autocomplete="off">
+        <button type="button" class="btn primary" id="fSave">Save</button>
+      </div>
+    </section>
   </main>
   <footer class="foot">Hen's Bone Setting</footer>
 </div>
@@ -365,6 +418,122 @@ function showRecords(status) {
 $('#rClose').onclick = () => rec.close();
 rec.addEventListener('click', e => { if (e.target === rec) rec.close(); });
 
+/* ---- Setting page: carousel on/off, photos, footer ---- */
+let S = { enabled: true, footer: '', images: [], max: 10 };
+let queue = Promise.resolve();
+const thumbUrl = id => 'https://drive.google.com/thumbnail?id=' + id + '&sz=w400';
+function fail(e) { if (expired(e)) logout(); else { toast((e && e.message) || 'Error'); loadSettings(); } }
+// Quick actions update the screen first and sync in the background, one request at a time.
+function sync(payload) { queue = queue.then(() => api(payload)).then(r => { if (!r.ok) throw new Error(r.error); }).catch(fail); return queue; }
+
+async function loadSettings() {
+  try {
+    const r = await api({ action: 'settings_get' });
+    if (!r.ok) throw new Error(r.error);
+    S = { enabled: r.carouselEnabled, footer: r.footer, images: r.images, max: r.max || 10 };
+    if (document.activeElement !== $('#fText')) $('#fText').value = S.footer;
+    renderCarousel();
+  } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
+}
+function renderCarousel() {
+  $('#carOn').setAttribute('aria-pressed', S.enabled);
+  $('#carOff').setAttribute('aria-pressed', !S.enabled);
+  $('#carNote').textContent = S.enabled ? 'Photos are shown at the top of the booking page.' : 'Disabled: the carousel is hidden on the booking page.';
+  $('#carPanel').classList.toggle('off', !S.enabled);
+  $('#pAdd').disabled = S.images.length >= S.max;
+  $('#pAdd').textContent = 'Add photos (' + S.images.length + '/' + S.max + ')';
+  const box = $('#pList'); box.replaceChildren();
+  if (!S.images.length) box.append(h('div', { class: 'pempty', text: 'No photos yet.' }));
+  S.images.forEach((p, i) => box.append(h('div', { class: 'prow' },
+    h('img', { src: thumbUrl(p.fileId), alt: 'Photo ' + (i + 1), loading: 'lazy' }),
+    h('div', { class: 'pbtns' },
+      h('span', { class: 'n', text: '#' + (i + 1) }),
+      h('button', { type: 'button', text: '↑', title: 'Move up', disabled: i === 0, onclick: () => movePhoto(i, 'up') }),
+      h('button', { type: 'button', text: '↓', title: 'Move down', disabled: i === S.images.length - 1, onclick: () => movePhoto(i, 'down') }),
+      h('button', { type: 'button', class: 'del', text: 'Remove', onclick: () => removePhoto(i) })))));
+}
+function setEnabled(on) {
+  if (S.enabled === on) return;
+  S.enabled = on; renderCarousel();
+  sync({ action: 'settings_set', carouselEnabled: on }).then(() => toast(on ? 'Carousel enabled.' : 'Carousel disabled.'));
+}
+function movePhoto(i, dir) {
+  const j = dir === 'up' ? i - 1 : i + 1;
+  if (j < 0 || j >= S.images.length) return;
+  const id = S.images[i].id;
+  [S.images[i], S.images[j]] = [S.images[j], S.images[i]]; renderCarousel();
+  sync({ action: 'carousel_move', id, dir });
+}
+function removePhoto(i) {
+  const p = S.images[i];
+  confirmBox('Remove photo?', 'Photo #' + (i + 1) + ' will be removed from the carousel.', () => {
+    S.images = S.images.filter(x => x.id !== p.id); renderCarousel();
+    sync({ action: 'carousel_delete', id: p.id }).then(() => toast('Photo removed.'));
+  });
+}
+// Resize to max 1600px wide and re-encode as JPEG so uploads stay small and fast on mobile data.
+function compress(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 1600 / img.naturalWidth);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+      x.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read ' + file.name)); };
+    img.src = url;
+  });
+}
+async function uploadFiles(files) {
+  const list = Array.from(files).slice(0, S.max - S.images.length);
+  if (!list.length) { toast('Maximum ' + S.max + ' photos.'); return; }
+  document.body.classList.add('busy');
+  try {
+    for (let i = 0; i < list.length; i++) {
+      toast('Uploading ' + (i + 1) + '/' + list.length + '…');
+      const data = await compress(list[i]);
+      const r = await api({ action: 'carousel_add', mime: 'image/jpeg', data });
+      if (!r.ok) throw new Error(r.error);
+    }
+    await loadSettings();
+    toast(list.length > 1 ? 'Photos added.' : 'Photo added.');
+  } catch (e) {
+    if (expired(e)) { logout(); return; }
+    toast(e.message || 'Upload failed.'); await loadSettings();
+  } finally { document.body.classList.remove('busy'); $('#pFile').value = ''; }
+}
+async function saveFooter() {
+  const btn = $('#fSave'); btn.disabled = true;
+  try {
+    const r = await api({ action: 'settings_set', footer: $('#fText').value });
+    if (!r.ok) throw new Error(r.error);
+    S.footer = $('#fText').value.trim(); $('#fText').value = S.footer;
+    toast(S.footer ? 'Footer saved.' : 'Footer reset to default.');
+  } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
+  finally { btn.disabled = false; }
+}
+$('#carOn').onclick = () => setEnabled(true);
+$('#carOff').onclick = () => setEnabled(false);
+$('#pAdd').onclick = () => $('#pFile').click();
+$('#pFile').onchange = e => uploadFiles(e.target.files);
+$('#fSave').onclick = saveFooter;
+$('#fText').addEventListener('keydown', e => { if (e.key === 'Enter') saveFooter(); });
+
+/* ---- pages: appointments / setting (#setting) ---- */
+function applyPage() {
+  const set = location.hash === '#setting';
+  $('#apptHead').hidden = set; $('#apptMain').hidden = set; $('#setMain').hidden = !set;
+  $('#navBtn').textContent = set ? '‹ Back' : 'Setting';
+  window.scrollTo(0, 0);
+  if (set) loadSettings();
+}
+$('#navBtn').onclick = () => { location.hash = location.hash === '#setting' ? '' : '#setting'; };
+window.addEventListener('hashchange', () => { if (!$('#app').hidden) applyPage(); });
+
 /* ---- confirm dialog ---- */
 const cfm = $('#cfm');
 let onYes = null;
@@ -391,7 +560,7 @@ async function act(payload, okMsg) {
 }
 
 /* ---- session ---- */
-function showApp() { $('#loginPage').hidden = true; $('#app').hidden = false; }
+function showApp() { $('#loginPage').hidden = true; $('#app').hidden = false; applyPage(); }
 function logout() { sessionStorage.removeItem('adminTok'); token = ''; location.reload(); }
 
 async function signIn(pw) {
@@ -426,7 +595,7 @@ if (!API_URL || API_URL.startsWith('PASTE')) {
     load().then(showApp).catch(() => { sessionStorage.removeItem('adminTok'); token = ''; });
   }
 }
-setInterval(() => { if (!$('#app').hidden && !document.body.classList.contains('busy') && !cfm.open && !rec.open) safeLoad(); }, 30000);
+setInterval(() => { if (!$('#app').hidden && !document.body.classList.contains('busy') && !cfm.open && !rec.open && location.hash !== '#setting') safeLoad(); }, 30000);
 </script>
 </body>
 </html>
