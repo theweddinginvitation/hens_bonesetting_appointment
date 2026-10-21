@@ -12,7 +12,7 @@
   :root {
     --ink:#0b3558; --muted:#5b6f86; --line:#e3e7ec;
     --blue:#006bff; --blue-deep:#0052cc; --blue-soft:#eaf2ff;
-    --ok:#17a05d;
+    --ok:#006bff;
     --paper:#f7f8fa; --surface:#fff; --chip:#f1f3f6;
     --ring:0 0 0 1px rgba(34,42,53,.08);
     --lift:0 4px 14px rgba(71,103,136,.16);
@@ -111,7 +111,7 @@
   .acts button:disabled { cursor:not-allowed; opacity:.5; }
   .card { border-radius:12px; padding:10px 12px 11px; border-left:4px solid; background:var(--surface); box-shadow:var(--ring); height:100%; }
   .card.Pending { border-color:#f5b400; background:#fff7dd; }
-  .card.Approved { border-color:var(--ok); background:#e7f6ee; }
+  .card.Approved { border-color:var(--ok); background:#e3eeff; }
   .card.Disabled { border-color:#98a4b3; background:#eef0f3; }
   .card .nm { font-weight:700; word-break:break-word; }
   .card .nm.none { color:var(--muted); font-style:italic; font-weight:600; }
@@ -121,7 +121,7 @@
   .badge { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:2px 8px; border-radius:20px; background:rgba(11,53,88,.08); }
   .acts { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
   .acts button { border:0; border-radius:8px; padding:6px 11px; font-size:12.5px; font-weight:600; }
-  .b-ap { background:var(--ok); color:#fff; } .b-ap:hover { background:#0f8449; }
+  .b-ap { background:var(--ok); color:#fff; } .b-ap:hover { background:var(--blue-deep); }
   .b-ca { background:#fff; color:var(--ink); box-shadow:var(--ring); } .b-ca:hover { background:#f1f3f6; }
   .b-di { background:#fde8ea; color:#b42318; } .b-di:hover { background:#fbd5d9; }
 
