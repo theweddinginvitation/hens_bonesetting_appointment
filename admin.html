@@ -54,6 +54,9 @@
   .top { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:12px; margin-bottom:14px; border-bottom:1px solid var(--line); }
   .top b { font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:-.01em; }
   .topbtns { display:flex; gap:8px; }
+  .top b.tb { display:flex; align-items:center; gap:10px; min-width:0; }
+  .logo { flex:none; width:32px; height:32px; border-radius:10px; background:var(--blue-soft); color:var(--blue); display:grid; place-items:center; }
+  .logo svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .top b small { font-weight:600; font-size:12px; background:var(--blue-soft); color:var(--blue); padding:3px 9px; border-radius:20px; margin-left:8px; vertical-align:1px; }
   .pill { border:0; border-radius:10px; padding:8px 14px; background:var(--chip); color:var(--ink); font-weight:600; font-size:14px; }
   .pill:hover { background:#e6eaef; }
@@ -89,7 +92,8 @@
   .fnav button[aria-current="page"] { color:#fff; }
   .pg-in { animation:pgIn .55s cubic-bezier(.22,1,.36,1); }
   @keyframes pgIn { from { opacity:0; transform:translate3d(var(--dx,0),10px,0); } }
-  .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px calc(20px + 72px + env(safe-area-inset-bottom,0px)); }
+  .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px; }
+  .foot-pad { background:var(--ink); height:calc(72px + env(safe-area-inset-bottom,0px)); }   /* room for the floating nav, same colour as the footer */
   #grid { display:grid; grid-template-columns:62px repeat(7,minmax(150px,1fr)); gap:8px; }
   .dh { padding:8px 6px; text-align:center; border-radius:10px; background:var(--surface); box-shadow:var(--ring); display:flex; flex-direction:column; }
   .dh b { font-family:var(--display); font-size:15px; letter-spacing:-.01em; }
@@ -211,7 +215,7 @@
   <header class="hero">
     <div class="wrap">
       <div class="top">
-        <b>Hen's Bone Setting <small>Admin</small></b>
+        <b class="tb"><span class="logo"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor" stroke="none"><rect x="10.43" y="1.10" width="4.0" height="1.65" rx="0.82" transform="rotate(-5.0 12.43 1.93)"/><rect x="10.11" y="3.30" width="4.4" height="1.81" rx="0.90" transform="rotate(6.6 12.31 4.21)"/><rect x="8.62" y="5.66" width="4.8" height="1.97" rx="0.98" transform="rotate(10.9 11.02 6.65)"/><rect x="7.52" y="6.25" width="1.70" height=".8" rx=".4" transform="rotate(22.9 11.02 6.65)"/><rect x="7.09" y="8.18" width="5.6" height="2.13" rx="1.06" transform="rotate(3.1 9.89 9.24)"/><rect x="5.89" y="8.84" width="1.80" height=".8" rx=".4" transform="rotate(15.1 9.89 9.24)"/><rect x="7.26" y="10.86" width="6.4" height="2.29" rx="1.15" transform="rotate(-9.4 10.46 12.00)"/><rect x="5.96" y="11.60" width="1.90" height=".8" rx=".4" transform="rotate(2.6 10.46 12.00)"/><rect x="8.52" y="13.70" width="7.2" height="2.45" rx="1.23" transform="rotate(-8.4 12.12 14.92)"/><rect x="7.12" y="14.52" width="2.00" height=".8" rx=".4" transform="rotate(3.6 12.12 14.92)"/><rect x="8.33" y="16.70" width="8.0" height="2.61" rx="1.30" transform="rotate(6.4 12.33 18.00)"/><rect x="6.83" y="17.61" width="2.10" height=".8" rx=".4" transform="rotate(18.4 12.33 18.00)"/></g><g fill="currentColor"><path transform="rotate(9.8 10.55 21.31)" stroke="currentColor" stroke-width=".8" stroke-linejoin="round" d="M6.95 19.91H14.15L11.95 22.31Q10.55 22.81 9.15 22.31Z"/></g><path d="M20 2.4v4.4M17.8 4.6h4.4" stroke-width="1.7"/></svg></span><span>Hen's Bone Setting <small>Admin</small></span></b>
         <div class="topbtns"><button class="pill" id="logout" type="button">Log out</button></div>
       </div>
       <div id="apptHead">
@@ -267,7 +271,8 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Setting
     </button>
   </nav>
-  <footer class="foot">Hen's Bone Setting</footer>
+  <footer class="foot" id="foot">Hen's Bone Setting</footer>
+  <div class="foot-pad" aria-hidden="true"></div>
 </div>
 
 <dialog id="rec" aria-labelledby="rTitle">
@@ -468,9 +473,10 @@ async function loadSettings() {
     if (!r.ok) throw new Error(r.error);
     S = { enabled: r.carouselEnabled, footer: r.footer, images: r.images, max: r.max || 10 };
     if (document.activeElement !== $('#fText')) $('#fText').value = S.footer;
-    renderCarousel();
+    showFooter(); renderCarousel();
   } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
 }
+function showFooter() { $('#foot').textContent = S.footer || "Hen's Bone Setting"; }
 function renderCarousel() {
   $('#carOn').setAttribute('aria-pressed', S.enabled);
   $('#carOff').setAttribute('aria-pressed', !S.enabled);
@@ -555,7 +561,7 @@ async function saveFooter() {
   try {
     const r = await api({ action: 'settings_set', footer: $('#fText').value });
     if (!r.ok) throw new Error(r.error);
-    S.footer = $('#fText').value.trim(); $('#fText').value = S.footer;
+    S.footer = $('#fText').value.trim(); $('#fText').value = S.footer; showFooter();
     toast(S.footer ? 'Footer saved.' : 'Footer reset to default.');
   } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
   finally { btn.disabled = false; }
@@ -668,7 +674,7 @@ function act(payload, okMsg) {
 }
 
 /* ---- session ---- */
-function showApp() { $('#loginPage').hidden = true; $('#app').hidden = false; applyPage(); }
+function showApp() { $('#loginPage').hidden = true; $('#app').hidden = false; applyPage(); if (location.hash !== '#setting') loadSettings(); }
 function logout() { sessionStorage.removeItem('adminTok'); token = ''; location.reload(); }
 
 async function signIn(pw) {
