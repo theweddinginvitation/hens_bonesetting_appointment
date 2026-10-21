@@ -75,7 +75,12 @@
 
   /* week grid (wide screens) */
   main.wrap { padding-top:22px; padding-bottom:16px; }
-  .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px; }
+  .fnav { position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:15; display:flex; gap:4px; padding:5px; border-radius:20px; background:rgba(255,255,255,.74); -webkit-backdrop-filter:blur(18px) saturate(170%); backdrop-filter:blur(18px) saturate(170%); box-shadow:0 0 0 1px rgba(34,42,53,.08), 0 10px 30px rgba(11,53,88,.2); }
+  .fnav button { display:inline-flex; align-items:center; gap:7px; border:0; background:transparent; color:var(--muted); font-weight:600; font-size:14px; padding:11px 18px; border-radius:15px; white-space:nowrap; touch-action:manipulation; transition:background .3s cubic-bezier(.22,1,.36,1), color .2s; }
+  .fnav button svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  @media (hover:hover) { .fnav button:hover { background:var(--chip); } }
+  .fnav button[aria-current="page"] { background:var(--blue); color:#fff; }
+  .foot { background:var(--ink); color:#cbd7e5; text-align:center; font-size:13.5px; font-weight:500; padding:20px 16px calc(20px + 72px + env(safe-area-inset-bottom,0px)); }
   #grid { display:grid; grid-template-columns:62px repeat(7,minmax(150px,1fr)); gap:8px; }
   .dh { padding:8px 6px; text-align:center; border-radius:10px; background:var(--surface); box-shadow:var(--ring); display:flex; flex-direction:column; }
   .dh b { font-family:var(--display); font-size:15px; letter-spacing:-.01em; }
@@ -172,7 +177,7 @@
   .frow input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 4px var(--blue-soft); }
   .frow .btn { padding:12px 20px; }
   .btn.danger { background:#d92d20; color:#fff; } .btn.danger:hover { background:#b42318; }
-  #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s; z-index:20; max-width:calc(100% - 32px); }
+  #toast { position:fixed; left:50%; bottom:calc(88px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 18px; border-radius:10px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s; z-index:20; max-width:calc(100% - 32px); }
   #toast.show { opacity:1; }
   @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
 </style>
@@ -195,7 +200,7 @@
     <div class="wrap">
       <div class="top">
         <b>Hen's Bone Setting <small>Admin</small></b>
-        <div class="topbtns"><button class="pill" id="navBtn" type="button">Setting</button><button class="pill" id="logout" type="button">Log out</button></div>
+        <div class="topbtns"><button class="pill" id="logout" type="button">Log out</button></div>
       </div>
       <div id="apptHead">
       <div class="row2">
@@ -240,6 +245,14 @@
       </div>
     </section>
   </main>
+  <nav class="fnav" aria-label="Pages">
+    <button type="button" id="navAppt" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Reservation
+    </button>
+    <button type="button" id="navSet">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Setting
+    </button>
+  </nav>
   <footer class="foot">Hen's Bone Setting</footer>
 </div>
 
@@ -527,11 +540,13 @@ $('#fText').addEventListener('keydown', e => { if (e.key === 'Enter') saveFooter
 function applyPage() {
   const set = location.hash === '#setting';
   $('#apptHead').hidden = set; $('#apptMain').hidden = set; $('#setMain').hidden = !set;
-  $('#navBtn').textContent = set ? '‹ Back' : 'Setting';
+  $('#navAppt').setAttribute('aria-current', set ? 'false' : 'page');
+  $('#navSet').setAttribute('aria-current', set ? 'page' : 'false');
   window.scrollTo(0, 0);
   if (set) loadSettings();
 }
-$('#navBtn').onclick = () => { location.hash = location.hash === '#setting' ? '' : '#setting'; };
+$('#navAppt').onclick = () => { if (location.hash === '#setting') location.hash = ''; };
+$('#navSet').onclick = () => { location.hash = '#setting'; };
 window.addEventListener('hashchange', () => { if (!$('#app').hidden) applyPage(); });
 
 /* ---- confirm dialog ---- */
