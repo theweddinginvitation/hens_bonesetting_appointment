@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <title>Admin – Hen's Bone Setting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,16 +21,20 @@
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   [hidden] { display:none !important; }
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; scrollbar-gutter:stable; }
+  html:has(dialog[open]) { overflow:hidden; }
   body { margin:0; font-family:var(--body); background:var(--paper); color:var(--ink); line-height:1.45; }
   body.busy { cursor:progress; }
-  body.busy button { pointer-events:none; opacity:.6; }
+  body.busy button { pointer-events:none; }
+  body.busy::after, body.syncing::after { content:""; position:fixed; top:0; left:0; right:0; height:3px; z-index:40; pointer-events:none; background:linear-gradient(90deg,transparent,var(--blue),transparent) no-repeat; background-size:40% 100%; animation:bar 1s linear infinite; }
+  @keyframes bar { from { background-position:-40% 0; } to { background-position:140% 0; } }
   button, input { font:inherit; }
   button { cursor:pointer; }
   :focus-visible { outline:3px solid #3b82f6; outline-offset:2px; }
-  .wrap { max-width:1280px; margin:0 auto; padding:0 16px; }
+  .wrap { max-width:1280px; margin:0 auto; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); }
 
   /* login */
-  .login-page { min-height:100vh; background:var(--paper); display:grid; place-items:center; padding:20px; }
+  .login-page { min-height:100vh; min-height:100dvh; background:var(--paper); display:grid; place-items:center; padding:20px; }
   .login { width:min(380px,100%); background:var(--surface); border-radius:16px; padding:28px 24px 24px; box-shadow:var(--ring), 0 12px 40px rgba(71,103,136,.16); }
   .login .brand { margin:0 0 2px; font-weight:600; font-size:14px; color:var(--muted); }
   .login h1 { margin:0 0 18px; font-family:var(--display); font-weight:800; font-size:30px; letter-spacing:-.03em; }
@@ -75,7 +79,7 @@
 
   /* week grid (wide screens) */
   main.wrap { padding-top:22px; padding-bottom:16px; }
-  .fnav { position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:15; display:grid; grid-template-columns:1fr 1fr; padding:5px; border-radius:999px; background:rgba(255,255,255,.74); -webkit-backdrop-filter:blur(18px) saturate(170%); backdrop-filter:blur(18px) saturate(170%); box-shadow:0 0 0 1px rgba(34,42,53,.08), 0 10px 30px rgba(11,53,88,.2); touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab; }
+  .fnav { position:fixed; left:50%; bottom:calc(16px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%); z-index:15; display:grid; grid-template-columns:1fr 1fr; padding:5px; border-radius:999px; background:rgba(255,255,255,.96); box-shadow:0 0 0 1px rgba(34,42,53,.08), 0 10px 30px rgba(11,53,88,.2); touch-action:pan-y; user-select:none; -webkit-user-select:none; cursor:grab; }
   .fnav.drag { cursor:grabbing; }
   .fnav .thumb { position:absolute; top:5px; bottom:5px; left:5px; width:calc((100% - 10px) / 2); border-radius:999px; background:var(--blue); box-shadow:0 4px 12px rgba(0,107,255,.35); transition:transform .55s cubic-bezier(.22,1,.36,1); will-change:transform; }
   .fnav.drag .thumb { transition:none; }
@@ -137,9 +141,9 @@
   }
 
   /* dialog + toast */
-  dialog { border:0; padding:0; border-radius:16px; width:min(400px,calc(100% - 32px)); background:var(--surface); color:var(--ink); box-shadow:0 24px 60px rgba(11,53,88,.28); }
+  dialog { border:0; padding:0; border-radius:16px; width:min(400px,calc(100% - 32px)); max-height:calc(100% - 32px); max-height:calc(100dvh - 32px); overflow:auto; overscroll-behavior:contain; background:var(--surface); color:var(--ink); box-shadow:0 24px 60px rgba(11,53,88,.28); }
   dialog[open] { animation:pop .22s cubic-bezier(.2,.9,.3,1.2); }
-  dialog::backdrop { background:rgba(11,53,88,.45); backdrop-filter:blur(3px); }
+  dialog::backdrop { background:rgba(11,53,88,.55); }
   @keyframes pop { from { opacity:0; transform:scale(.94) translateY(8px); } }
   .cbox { padding:24px 22px 22px; }
   .cbox h2 { margin:0 0 8px; font-family:var(--display); font-size:22px; letter-spacing:-.02em; }
@@ -345,7 +349,15 @@ function safeLoad() {
 }
 
 /* ---- render ---- */
+let lastSig = '';
+function centerTab() {
+  const tabs = $('#tabs'), b = tabs.querySelector('[aria-pressed="true"]');
+  if (b) tabs.scrollTo({ left: b.offsetLeft - (tabs.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' });
+}
 function render() {
+  const sig = JSON.stringify([weekStart, selDay, cfg.now, mq.matches, rows]);
+  if (sig === lastSig) return;                       // nothing changed: touch nothing
+  lastSig = sig;
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   $('#range').textContent = md(weekStart) + ' – ' + md(days[6]) + ', ' + localDate(days[6]).getFullYear();
 
@@ -356,16 +368,17 @@ function render() {
 
   const byKey = new Map(rows.map(r => [r.date + ' ' + r.time, r]));
 
-  const tabs = $('#tabs'); tabs.replaceChildren();
+  const tabs = $('#tabs'), keepX = tabs.scrollLeft; tabs.replaceChildren();
   days.forEach(d => {
     const np = rows.filter(r => r.date === d && r.status === 'Pending').length;
-    const b = h('button', { class: 'tab', type: 'button', onclick: () => { selDay = d; render(); } },
+    const b = h('button', { class: 'tab', type: 'button', onclick: () => { selDay = d; render(); centerTab(); } },
       h('span', { class: 'dn', text: d === cfg.today ? 'Today' : dow(d) }),
       h('span', { class: 'dd', text: localDate(d).getDate() }),
       np ? h('span', { class: 'np', text: np }) : null);
     b.setAttribute('aria-pressed', d === selDay);
     tabs.append(b);
   });
+  tabs.scrollLeft = keepX;
 
   const g = $('#grid'); g.replaceChildren();
   const list = $('#list'); list.replaceChildren();
@@ -394,7 +407,7 @@ function cell(d, t, r) {
   }
   const named = !!r.name;
   if (!named) { // blocked slot: the whole card is the unblock button
-    c.append(h('button', { class: 'card Disabled cardbtn', type: 'button', disabled: past,
+    c.append(h('button', { class: 'card Disabled cardbtn', type: 'button', disabled: past || !!r.tmp,
       onclick: () => act({ action: 'update', id: r.id, status: 'Cancelled' }, 'Slot unblocked.') },
       h('div', { class: 'nm none', text: 'Blocked' }),
       h('div', { class: 'hint', text: 'Click to Unblock' })));
@@ -496,21 +509,28 @@ function removePhoto(i) {
   });
 }
 // Resize to max 1600px wide and re-encode as JPEG so uploads stay small and fast on mobile data.
-function compress(file) {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file), img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, 1600 / img.naturalWidth);
-      const c = document.createElement('canvas');
-      c.width = Math.round(img.naturalWidth * scale); c.height = Math.round(img.naturalHeight * scale);
-      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
-      x.drawImage(img, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url);
-      resolve(c.toDataURL('image/jpeg', 0.82));
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read ' + file.name)); };
-    img.src = url;
-  });
+// Decoding and encoding are async, so the page never freezes while a photo is processed.
+async function compress(file) {
+  const fail = () => new Error('Could not read ' + file.name);
+  const draw = (src, w, h) => {
+    const scale = Math.min(1, 1600 / w);
+    const c = document.createElement('canvas');
+    c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+    x.drawImage(src, 0, 0, c.width, c.height);
+    return new Promise((res, rej) => c.toBlob(b => {
+      if (!b) return rej(fail());
+      const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(fail()); fr.readAsDataURL(b);
+    }, 'image/jpeg', 0.82));
+  };
+  if (window.createImageBitmap) {
+    try { const bmp = await createImageBitmap(file); const out = await draw(bmp, bmp.width, bmp.height); if (bmp.close) bmp.close(); return out; } catch (e) {}
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(fail()); im.src = url; });
+    return await draw(img, img.naturalWidth, img.naturalHeight);
+  } finally { URL.revokeObjectURL(url); }
 }
 async function uploadFiles(files) {
   const list = Array.from(files).slice(0, S.max - S.images.length);
@@ -617,19 +637,34 @@ $('#cNo').onclick = () => cfm.close();
 $('#cYes').onclick = () => { const f = onYes; cfm.close(); if (f) f(); };
 cfm.addEventListener('click', e => { if (e.target === cfm) cfm.close(); });
 
-async function act(payload, okMsg) {
-  document.body.classList.add('busy');
-  try {
-    const r = await api(payload);
-    if (!r.ok) throw new Error(r.error);
-    await load();
-    toast(okMsg);
-  } catch (e) {
-    if (expired(e)) { logout(); return; }
-    toast(e.message || 'Error'); try { await load(); } catch (_) {}
-  } finally {
-    document.body.classList.remove('busy');
+// Instant UI: apply the change on screen first, then sync in order. One refresh when the queue is empty.
+let ops = Promise.resolve(), pendingOps = 0, tmpN = 0;
+function applyLocal(p) {
+  if (p.action === 'disable') rows.push({ id: 'tmp' + (++tmpN), tmp: true, date: p.date, time: p.time, name: '', phone: '', status: 'Disabled' });
+  else if (p.action === 'update') {
+    const i = rows.findIndex(r => r.id === p.id); if (i < 0) return;
+    if (p.status === 'Cancelled') rows.splice(i, 1); else rows[i] = { ...rows[i], status: p.status };
   }
+}
+function act(payload, okMsg) {
+  applyLocal(payload); render();
+  pendingOps++; document.body.classList.add('syncing');
+  ops = ops.then(async () => {
+    try {
+      const r = await api(payload);
+      if (!r.ok) throw new Error(r.error);
+      toast(okMsg);
+    } catch (e) {
+      if (expired(e)) { logout(); return; }
+      toast(e.message || 'Error');
+    } finally {
+      if (--pendingOps === 0) {
+        document.body.classList.remove('syncing');
+        try { await load(); } catch (e2) { if (expired(e2)) logout(); }
+      }
+    }
+  });
+  return ops;
 }
 
 /* ---- session ---- */
@@ -668,7 +703,7 @@ if (!API_URL || API_URL.startsWith('PASTE')) {
     load().then(showApp).catch(() => { sessionStorage.removeItem('adminTok'); token = ''; });
   }
 }
-setInterval(() => { if (!$('#app').hidden && !document.body.classList.contains('busy') && !cfm.open && !rec.open && location.hash !== '#setting') safeLoad(); }, 30000);
+setInterval(() => { if (!$('#app').hidden && !document.body.classList.contains('busy') && !cfm.open && !rec.open && !pendingOps && !document.hidden && location.hash !== '#setting') safeLoad(); }, 30000);
 </script>
 </body>
 </html>
