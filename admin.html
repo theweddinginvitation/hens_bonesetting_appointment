@@ -119,6 +119,14 @@
   .dh.today span { color:rgba(255,255,255,.85); }
   .tl { font-weight:600; font-size:13px; color:var(--muted); padding:12px 4px 0 0; text-align:right; font-variant-numeric:tabular-nums; }
 
+  /* skeleton placeholders while a week or the settings load */
+  .skel { min-height:96px; border-radius:18px; background:linear-gradient(90deg,#e8e8ed,#f5f5f7,#e8e8ed); background-size:200% 100%; animation:sh 1.2s linear infinite; }
+  @keyframes sh { to { background-position:-200% 0; } }
+  .skel.hd { min-height:48px; border-radius:16px; }
+  .skel.lbl { min-height:14px; width:60%; margin-top:12px; justify-self:end; border-radius:7px; }
+  .skel.chip { min-height:0; width:96px; height:32px; border-radius:999px; }
+  .skel.row { min-height:58px; margin:10px 0; }
+
   /* list (small screens) */
   #list { display:none; }
   .lrow { display:grid; grid-template-columns:54px 1fr; gap:8px; margin-bottom:8px; }
@@ -400,7 +408,7 @@ async function load() {
   render();
 }
 function safeLoad() {
-  return load().catch(e => { if (expired(e)) logout(); else toast(e.message || 'Error'); });
+  return load().catch(e => { if (expired(e)) logout(); else { toast(e.message || 'Error'); if (cfg) { lastSig = ''; render(); } } });
 }
 
 /* ---- render ---- */
@@ -408,6 +416,15 @@ let lastSig = '';
 function centerTab() {
   const tabs = $('#tabs'), b = tabs.querySelector('[aria-pressed="true"]');
   if (b) tabs.scrollTo({ left: b.offsetLeft - (tabs.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' });
+}
+function showSkeleton() {
+  lastSig = '';                                      // force the next render to replace the placeholders
+  const g = $('#grid'), list = $('#list');
+  g.replaceChildren(h('div'), ...Array.from({ length: 7 }, () => h('div', { class: 'skel hd' })));
+  for (let r = 0; r < 6; r++) { g.append(h('div', { class: 'skel lbl' })); for (let c = 0; c < 7; c++) g.append(h('div', { class: 'skel' })); }
+  list.replaceChildren(h('div', { class: 'skel hd', style: 'width:60%;margin-bottom:12px' }),
+    ...Array.from({ length: 6 }, () => h('div', { class: 'lrow' }, h('div', { class: 'skel lbl' }), h('div', { class: 'skel' }))));
+  $('#stats').replaceChildren(h('div', { class: 'skel chip' }), h('div', { class: 'skel chip' }));
 }
 function render() {
   const sig = JSON.stringify([weekStart, selDay, cfg.now, mq.matches, rows]);
@@ -517,12 +534,15 @@ function fail(e) { if (expired(e)) logout(); else { toast((e && e.message) || 'E
 // Quick actions update the screen first and sync in the background, one request at a time.
 function sync(payload) { queue = queue.then(() => api(payload)).then(r => { if (!r.ok) throw new Error(r.error); }).catch(fail); return queue; }
 
+let settingsLoaded = false;
 async function loadSettings() {
   try {
+    if (!settingsLoaded) $('#pList').replaceChildren(h('div', { class: 'skel row' }), h('div', { class: 'skel row' }));
     const r = await api({ action: 'settings_get' });
     if (!r.ok) throw new Error(r.error);
     S = { enabled: r.carouselEnabled, footer: r.footer, images: r.images, max: r.max || 10 };
     if (document.activeElement !== $('#fText')) $('#fText').value = S.footer;
+    settingsLoaded = true;
     showFooter(); renderCarousel();
   } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
 }
@@ -744,9 +764,9 @@ $('#login').addEventListener('submit', async e => {
   catch (err) { $('#lerr').textContent = err.message || 'Login failed.'; token = ''; }
   finally { pw.value = ''; btn.disabled = false; btn.textContent = 'Sign in'; }
 });
-$('#prev').onclick = () => { weekStart = addDays(weekStart, -7); safeLoad(); };
-$('#next').onclick = () => { weekStart = addDays(weekStart, 7); safeLoad(); };
-$('#todayBtn').onclick = () => { weekStart = ''; selDay = ''; safeLoad(); };
+$('#prev').onclick = () => { weekStart = addDays(weekStart, -7); showSkeleton(); safeLoad(); };
+$('#next').onclick = () => { weekStart = addDays(weekStart, 7); showSkeleton(); safeLoad(); };
+$('#todayBtn').onclick = () => { weekStart = ''; selDay = ''; showSkeleton(); safeLoad(); };
 $('#logout').onclick = logout;
 mq.addEventListener('change', () => { if (cfg) render(); });
 
