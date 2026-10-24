@@ -69,7 +69,7 @@
   .logo { flex:none; width:32px; height:32px; border-radius:10px; background:linear-gradient(180deg,#4da3ff,#007aff); color:#fff; display:grid; place-items:center; box-shadow:inset 0 .5px 0 rgba(255,255,255,.5), 0 2px 6px rgba(0,122,255,.35); }
   .logo svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   .top b small { font-weight:600; font-size:12px; background:var(--blue-soft); color:var(--blue); padding:3px 9px; border-radius:20px; margin-left:8px; vertical-align:1px; }
-  .pill { border:0; border-radius:999px; padding:8px 15px; background:var(--chip); color:var(--blue); font-weight:600; font-size:14px; letter-spacing:-.01em; transition:background .2s, transform .5s var(--spring); }
+  .pill { white-space:nowrap; border:0; border-radius:999px; padding:8px 15px; background:var(--chip); color:var(--blue); font-weight:600; font-size:14px; letter-spacing:-.01em; transition:background .2s, transform .5s var(--spring); }
   .pill:hover { background:rgba(120,120,128,.2); }
   .pill:active { transform:scale(.93); transition-duration:.1s; }
   .row2 { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; justify-content:space-between; }
@@ -189,12 +189,12 @@
   @keyframes pop { from { opacity:0; transform:translateY(18px) scale(.95); } }
   @keyframes fade { from { opacity:0; } }
   @media (max-width:639px) {
-    dialog#rec { width:100%; max-width:none; margin:auto 0 0; border-radius:30px 30px 0 0; max-height:88dvh; padding-bottom:env(safe-area-inset-bottom,0px); transform:translateY(100%); transition:opacity .25s var(--ease), transform .55s var(--ease), overlay .55s allow-discrete, display .55s allow-discrete; }
-    dialog#rec[open] { transform:none; }
-    dialog#rec .cbox::before { content:""; position:absolute; top:8px; left:50%; width:38px; height:5px; margin-left:-19px; border-radius:3px; background:rgba(60,60,67,.3); }
-    dialog#rec .cbox { padding-top:30px; }
+    dialog.sheet { width:100%; max-width:none; margin:auto 0 0; border-radius:30px 30px 0 0; max-height:88dvh; padding-bottom:env(safe-area-inset-bottom,0px); transform:translateY(100%); transition:opacity .25s var(--ease), transform .55s var(--ease), overlay .55s allow-discrete, display .55s allow-discrete; }
+    dialog.sheet[open] { transform:none; }
+    dialog.sheet .cbox::before { content:""; position:absolute; top:8px; left:50%; width:38px; height:5px; margin-left:-19px; border-radius:3px; background:rgba(60,60,67,.3); }
+    dialog.sheet .cbox { padding-top:30px; }
   }
-  @media (max-width:639px) { @starting-style { dialog#rec[open] { opacity:1; transform:translateY(100%); } } }
+  @media (max-width:639px) { @starting-style { dialog.sheet[open] { opacity:1; transform:translateY(100%); } } }
   .cbox { padding:24px 22px 22px; position:relative; }
   .cbox h2 { margin:0 0 8px; font-family:var(--display); font-size:22px; font-weight:700; letter-spacing:-.024em; }
   .cbox p { margin:0 0 20px; color:var(--muted); }
@@ -246,6 +246,30 @@
   .frow input:focus { outline:none; background:#fff; box-shadow:0 0 0 3.5px rgba(0,122,255,.4); }
   .frow .btn { padding:12px 22px; }
   .btn.danger { background:#ff3b30; color:#fff; } .btn.danger:hover { background:#d1322b; }
+  /* no-show, closed, search + add */
+  .card.No-show { background:#fdeeed; box-shadow:inset 4px 0 0 #ff3b30; }
+  .card.Closed { background:repeating-linear-gradient(135deg,rgba(120,120,128,.14) 0 2px,transparent 2px 9px),rgba(120,120,128,.07); box-shadow:none; }
+  .card.Closed .nm { font-style:normal; }
+  .badge.ns { background:rgba(255,159,10,.18); color:#a35f00; }
+  .badge.flag { background:#ff3b30; color:#fff; }
+  .chip.blue { background:var(--blue); color:#fff; box-shadow:0 6px 16px rgba(0,122,255,.3); }
+  .chip.blue:hover { background:var(--blue-deep); box-shadow:0 8px 20px rgba(0,122,255,.38); }
+  .sp { margin-left:auto; display:flex; gap:8px; }
+  .fld { width:100%; padding:13px 16px; border:0; border-radius:14px; font-size:17px; letter-spacing:-.015em; background:rgba(120,120,128,.12); color:var(--ink); transition:background .2s, box-shadow .3s var(--ease); -webkit-appearance:none; appearance:none; min-height:48px; }
+  .fld::placeholder { color:#9a9aa1; }
+  .fld:focus { outline:none; background:#fff; box-shadow:0 0 0 3.5px rgba(0,122,255,.4); }
+  .fld:disabled { opacity:.5; }
+  select.fld { padding-right:38px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%236e6e73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 15px center; }
+  .fgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .fgrid > div { min-width:0; }
+  .cbox p.err { color:#d1322b; font-size:13.5px; margin:0 0 12px; background:#fdeeed; border-radius:12px; padding:10px 12px; }
+  .cbox p.err:empty { display:none; }
+  .crow { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; }
+  .crow + .crow { box-shadow:0 -.5px 0 var(--line); }
+  .crow .ct { font-weight:600; letter-spacing:-.01em; word-break:break-word; }
+  .crow .cs { font-size:13px; color:var(--muted); }
+  #ruleForm { margin-top:6px; padding-top:16px; box-shadow:0 -.5px 0 var(--line); }
+  #ruleForm .btn { width:100%; }
   #toast { position:fixed; left:50%; bottom:calc(88px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(14px) scale(.96); background:rgba(29,29,31,.86); -webkit-backdrop-filter:saturate(180%) blur(20px); backdrop-filter:saturate(180%) blur(20px); color:#fff; padding:12px 20px; border-radius:999px; font-size:14px; font-weight:600; letter-spacing:-.01em; opacity:0; pointer-events:none; transition:opacity .3s var(--ease), transform .6s var(--spring); z-index:50; max-width:calc(100% - 32px); box-shadow:0 10px 30px rgba(0,0,0,.25); }
   #toast.show { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
   @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
@@ -311,6 +335,30 @@
       </div>
       <div id="pList"></div>
     </section>
+    <section class="panel" id="rulePanel">
+      <h2>Closed times</h2>
+      <p class="hint2">Weekly days off, daily breaks and holidays. Customers cannot book these times. Existing bookings stay.</p>
+      <div id="ruleList"></div>
+      <form id="ruleForm" novalidate>
+        <div class="fgrid">
+          <div><label for="rKind">Type</label>
+            <select class="fld" id="rKind"><option value="weekly">Repeats weekly</option><option value="range">Date range</option></select></div>
+          <div id="rDayBox"><label for="rDay">Day</label>
+            <select class="fld" id="rDay"><option value="*">Every day</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option></select></div>
+        </div>
+        <div class="fgrid" id="rRangeBox" hidden>
+          <div><label for="rFrom">From date</label><input class="fld" id="rFrom" type="date"></div>
+          <div><label for="rTo">To date</label><input class="fld" id="rTo" type="date"></div>
+        </div>
+        <div class="fgrid">
+          <div><label for="rStart">From time</label><select class="fld" id="rStart"></select></div>
+          <div><label for="rEnd">To time</label><select class="fld" id="rEnd"></select></div>
+        </div>
+        <div style="margin-bottom:14px"><label for="rLabel">Label (optional)</label>
+          <input class="fld" id="rLabel" maxlength="40" placeholder="Day off, Lunch, Holiday" autocomplete="off"></div>
+        <button type="submit" class="btn primary" id="rAdd">Add closed time</button>
+      </form>
+    </section>
     <section class="panel">
       <h2>Footer</h2>
       <p class="hint2">Text shown at the bottom of the booking page. Leave empty for the default.</p>
@@ -333,7 +381,7 @@
   <div class="foot-pad" aria-hidden="true"></div>
 </div>
 
-<dialog id="rec" aria-labelledby="rTitle">
+<dialog id="rec" class="sheet" aria-labelledby="rTitle">
   <div class="cbox">
     <h2 id="rTitle"></h2>
     <p class="sub" id="rSub"></p>
@@ -352,13 +400,39 @@
     </div>
   </div>
 </dialog>
+<dialog id="srch" class="sheet" aria-labelledby="sTitle">
+  <div class="cbox">
+    <h2 id="sTitle">Search</h2>
+    <input class="fld" id="sQ" type="search" placeholder="Name or phone number" autocomplete="off" style="margin-bottom:12px">
+    <div class="rlist" id="sList"></div>
+    <div class="cbtns"><button type="button" class="btn ghost" id="sClose">Close</button></div>
+  </div>
+</dialog>
+
+<dialog id="add" class="sheet" aria-labelledby="aTitle">
+  <form class="cbox" id="addForm" novalidate>
+    <h2 id="aTitle">New appointment</h2>
+    <p class="sub">Walk-in or phone booking. Saved as approved. Closed times can be overridden here.</p>
+    <p class="err" id="aErr" role="alert"></p>
+    <div class="fgrid">
+      <div><label for="aDate">Date</label><input class="fld" id="aDate" type="date" required></div>
+      <div><label for="aTime">Time</label><select class="fld" id="aTime"></select></div>
+    </div>
+    <div style="margin-bottom:12px"><label for="aName">Name</label><input class="fld" id="aName" maxlength="80" autocomplete="off" placeholder="Full name" required></div>
+    <div style="margin-bottom:18px"><label for="aPhone">Phone</label><input class="fld" id="aPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="off" placeholder="+62 812 3456 7890" required></div>
+    <div class="cbtns">
+      <button type="button" class="btn ghost" id="aCancel">Cancel</button>
+      <button type="submit" class="btn primary" id="aSave">Save</button>
+    </div>
+  </form>
+</dialog>
 <div id="toast"></div>
 
 <script src="config.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const mq = window.matchMedia('(min-width:900px)');
-let token = '', cfg = null, weekStart = '', rows = [], selDay = '';
+let token = '', cfg = null, weekStart = '', rows = [], selDay = '', closed = new Map(), R = [], rulesDirty = false;
 
 function h(tag, props, ...kids) {
   const e = document.createElement(tag);
@@ -403,6 +477,7 @@ async function load() {
   const r = await api({ action: 'admin_list', from: weekStart });
   if (!r.ok) throw new Error(r.error);
   cfg = r.config; weekStart = r.from; rows = r.rows;
+  closed = new Map((r.closed || []).map(c => [c.date + ' ' + c.time, c.label]));
   const week = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   if (!week.includes(selDay)) selDay = week.includes(cfg.today) ? cfg.today : weekStart;
   render();
@@ -427,7 +502,7 @@ function showSkeleton() {
   $('#stats').replaceChildren(h('div', { class: 'skel chip' }), h('div', { class: 'skel chip' }));
 }
 function render() {
-  const sig = JSON.stringify([weekStart, selDay, cfg.now, mq.matches, rows]);
+  const sig = JSON.stringify([weekStart, selDay, cfg.now, mq.matches, rows, [...closed]]);
   if (sig === lastSig) return;                       // nothing changed: touch nothing
   lastSig = sig;
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -436,7 +511,10 @@ function render() {
   const count = s => rows.filter(r => r.status === s).length;
   const st = $('#stats'); st.replaceChildren(
     h('button', { class: 'chip', type: 'button', onclick: () => showRecords('Pending') }, h('i', { class: 'c-p' }), h('b', { text: count('Pending') }), 'pending'),
-    h('button', { class: 'chip', type: 'button', onclick: () => showRecords('Approved') }, h('i', { class: 'c-a' }), h('b', { text: count('Approved') }), 'approved'));
+    h('button', { class: 'chip', type: 'button', onclick: () => showRecords('Approved') }, h('i', { class: 'c-a' }), h('b', { text: count('Approved') }), 'approved'),
+    h('span', { class: 'sp' },
+      h('button', { class: 'chip', type: 'button', onclick: openSearch }, 'Search'),
+      h('button', { class: 'chip blue', type: 'button', onclick: openAdd }, '+ New')));
 
   const byKey = new Map(rows.map(r => [r.date + ' ' + r.time, r]));
 
@@ -472,6 +550,12 @@ function render() {
 function cell(d, t, r) {
   const past = (d + ' ' + t) <= cfg.now;
   const c = h('div', { class: 'cell' + (past ? ' past' : '') });
+  if (!r && closed.has(d + ' ' + t)) {
+    c.append(h('div', { class: 'card Closed' },
+      h('div', { class: 'nm none', text: 'Closed' }),
+      h('div', { class: 'hint', text: closed.get(d + ' ' + t) })));
+    return c;
+  }
   if (!r) {
     c.append(h('button', { class: 'empty', type: 'button', text: 'Click to Block', disabled: past,
       onclick: () => act({ action: 'disable', date: d, time: t }, 'Slot blocked.') }));
@@ -486,15 +570,23 @@ function cell(d, t, r) {
     return c;
   }
   const acts = h('div', { class: 'acts' });
+  if (r.status === 'No-show') acts.append(h('button', { class: 'b-ca', type: 'button', text: 'Undo', disabled: !!r.tmp,
+    onclick: () => act({ action: 'update', id: r.id, status: 'Approved' }, 'No-show removed.') }));
+  else {
   if (r.status !== 'Approved') acts.append(h('button', { class: 'b-ap', type: 'button', text: 'Approve', disabled: past,
     onclick: () => act({ action: 'update', id: r.id, status: 'Approved' }, 'Approved.') }));
   acts.append(h('button', { class: 'b-ca', type: 'button', text: 'Cancel', disabled: past,
     onclick: () => confirmBox('Cancel appointment?', r.name + ' · ' + longDate(d) + ', ' + t + '. The slot becomes available again.',
       () => act({ action: 'update', id: r.id, status: 'Cancelled' }, 'Slot available again.')) }));
+  if (past) acts.append(h('button', { class: 'b-di', type: 'button', text: 'No-show', disabled: !!r.tmp,
+    onclick: () => confirmBox('Mark as no-show?', r.name + ' · ' + longDate(d) + ', ' + t + '. This adds to their no-show count.',
+      () => act({ action: 'update', id: r.id, status: 'No-show' }, 'Marked as no-show.')) }));
+  }
   const meta = h('div', { class: 'meta' },
     r.phone ? h('a', { href: 'tel:' + r.phone, text: r.phone }) : null,
     r.phone ? h('a', { href: waLink(r.phone), target: '_blank', rel: 'noopener', text: 'WhatsApp' }) : null,
-    h('span', { class: 'badge', text: r.status }));
+    h('span', { class: 'badge', text: r.status }),
+    nsBadge(r));
   c.append(h('div', { class: 'card ' + r.status },
     h('div', { class: 'nm', text: r.name }),
     meta, acts));
@@ -537,13 +629,14 @@ function sync(payload) { queue = queue.then(() => api(payload)).then(r => { if (
 let settingsLoaded = false;
 async function loadSettings() {
   try {
-    if (!settingsLoaded) $('#pList').replaceChildren(h('div', { class: 'skel row' }), h('div', { class: 'skel row' }));
+    if (!settingsLoaded) { $('#pList').replaceChildren(h('div', { class: 'skel row' }), h('div', { class: 'skel row' })); $('#ruleList').replaceChildren(h('div', { class: 'skel row' })); }
     const r = await api({ action: 'settings_get' });
     if (!r.ok) throw new Error(r.error);
     S = { enabled: r.carouselEnabled, footer: r.footer, images: r.images, max: r.max || 10 };
+    R = r.rules || [];
     if (document.activeElement !== $('#fText')) $('#fText').value = S.footer;
     settingsLoaded = true;
-    showFooter(); renderCarousel();
+    showFooter(); renderCarousel(); renderRules();
   } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
 }
 function showFooter() { $('#foot').textContent = S.footer || "Hen's Bone Setting"; }
@@ -654,6 +747,7 @@ function applyPage() {
   $('#navSet').setAttribute('aria-current', set ? 'page' : 'false');
   slideThumb(set ? 1 : 0);
   window.scrollTo(0, 0);
+  if (!set && rulesDirty) { rulesDirty = false; safeLoad(); }   // closed times changed in Setting
   if (curSet !== null && curSet !== set) {            // animate only when the page actually changes
     const targets = set ? [$('#setMain')] : [$('#apptHead'), $('#apptMain')];
     targets.forEach(t => {
@@ -703,6 +797,170 @@ nav.addEventListener('pointercancel', endDrag);
 
 window.addEventListener('hashchange', () => { if (!$('#app').hidden) applyPage(); });
 
+/* ---- helpers for the features below ---- */
+function endTime(t, mins) {
+  const [hh, mm] = t.split(':').map(Number), x = hh * 60 + mm + mins;
+  return String(Math.floor(x / 60)).padStart(2, '0') + ':' + String(x % 60).padStart(2, '0');
+}
+// 0812 3456 7890 -> +6281234567890 (same rule as the booking page)
+function normPhone(p) {
+  let d = String(p).trim();
+  if (d.startsWith('+')) { d = d.slice(1).replace(/\D/g, ''); if (d.startsWith('0')) d = '62' + d.slice(1); return '+' + d; }
+  d = d.replace(/\D/g, '');
+  if (d.startsWith('00')) return '+' + d.slice(2);
+  if (d.startsWith('0')) return '+62' + d.slice(1);
+  if (d.startsWith('62')) return '+' + d;
+  return d;
+}
+function dmy(ymd) { return localDate(ymd).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }); }
+function inWeek(ymd) { return Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)).includes(ymd); }
+// "2 no-shows", red once the phone reaches the flag threshold
+function nsBadge(r) {
+  const n = r.noShows || 0;
+  if (!n) return null;
+  const flag = n >= ((cfg && cfg.noShowFlag) || 2);
+  return h('span', { class: 'badge ' + (flag ? 'flag' : 'ns'), text: (flag ? '⚠ ' : '') + n + ' no-show' + (n > 1 ? 's' : '') });
+}
+function fillTimeOptions() {
+  const opt = (v, t) => h('option', { value: v, text: t });
+  $('#aTime').replaceChildren(...cfg.times.map(t => opt(t, t)));
+  $('#rStart').replaceChildren(opt('', 'All day'), ...cfg.times.map(t => opt(t, t)));
+  $('#rEnd').replaceChildren(...cfg.times.map(t => { const e = endTime(t, cfg.slotMinutes); return opt(e, e); }));
+  syncRuleTime();
+}
+function syncRuleTime() {
+  const s = $('#rStart').value, e = $('#rEnd');
+  e.disabled = !s;
+  if (s && e.value <= s) e.value = endTime(s, cfg.slotMinutes);
+}
+
+/* ---- search by name or phone ---- */
+const srch = $('#srch');
+let sSeq = 0, sTimer = 0;
+function openSearch() { $('#sQ').value = ''; renderSearch(null); srch.showModal(); $('#sQ').focus(); }
+function jumpTo(date) {
+  srch.close();
+  selDay = date;
+  if (!inWeek(date)) { weekStart = date; showSkeleton(); safeLoad(); } else render();
+}
+function renderSearch(list, msg) {
+  const box = $('#sList'); box.replaceChildren();
+  if (!list) { box.append(h('div', { class: 'rempty', text: msg || 'Type at least 2 letters of a name, or 3 digits of a phone number.' })); return; }
+  if (!list.length) { box.append(h('div', { class: 'rempty', text: 'No results.' })); return; }
+  list.forEach(r => box.append(h('div', { class: 'rrow', onclick: () => jumpTo(r.date) },
+    h('div', null,
+      h('div', { class: 'when', text: dow(r.date) + ', ' + dmy(r.date) + ' · ' + r.time }),
+      h('div', { class: 'who', text: r.name }),
+      h('div', { class: 'ph', text: r.phone })),
+    h('div', { class: 'meta', style: 'margin:0;justify-content:flex-end' }, h('span', { class: 'badge', text: r.status }), nsBadge(r)))));
+}
+$('#sQ').addEventListener('input', () => {
+  clearTimeout(sTimer);
+  const q = $('#sQ').value.trim(), digits = q.replace(/\D/g, '');
+  if (q.length < 2 || (/^[\d\s+\-()]+$/.test(q) && digits.length < 3)) { sSeq++; renderSearch(null); return; }
+  renderSearch(null, 'Searching…');
+  sTimer = setTimeout(async () => {
+    const my = ++sSeq;
+    try {
+      const r = await api({ action: 'admin_search', q });
+      if (my !== sSeq) return;                       // a newer search replaced this one
+      if (!r.ok) throw new Error(r.error);
+      renderSearch(r.rows);
+    } catch (e) {
+      if (my !== sSeq) return;
+      if (expired(e)) { logout(); return; }
+      renderSearch(null, e.message || 'Error');
+    }
+  }, 250);
+});
+$('#sClose').onclick = () => srch.close();
+srch.addEventListener('click', e => { if (e.target === srch) srch.close(); });
+
+/* ---- manual add (walk-in / phone booking) ---- */
+const addDlg = $('#add');
+function openAdd() {
+  const d = selDay || cfg.today;
+  const busy = new Set(rows.filter(r => r.date === d).map(r => r.time));
+  $('#aDate').value = d;
+  $('#aTime').value = cfg.times.find(t => !busy.has(t) && !closed.has(d + ' ' + t) && (d + ' ' + t) > cfg.now) || cfg.times[0];
+  $('#aName').value = ''; $('#aPhone').value = ''; $('#aErr').textContent = '';
+  addDlg.showModal();
+  $('#aName').focus();
+}
+$('#aCancel').onclick = () => addDlg.close();
+addDlg.addEventListener('click', e => { if (e.target === addDlg) addDlg.close(); });
+$('#addForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const date = $('#aDate').value, time = $('#aTime').value, name = $('#aName').value.trim(), phoneRaw = $('#aPhone').value.trim();
+  const bad = !/^\d{4}-\d{2}-\d{2}$/.test(date) ? 'Pick a date.'
+    : name.length < 2 ? 'Enter a name.'
+    : !/^[0-9+\-\s()]{7,20}$/.test(phoneRaw) ? 'Enter a valid phone number.' : '';
+  $('#aErr').textContent = bad;
+  if (bad) return;
+  const btn = $('#aSave'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const r = await api({ action: 'admin_add', date, time, name, phone: normPhone(phoneRaw) });
+    if (!r.ok) throw new Error(r.error);
+    addDlg.close();
+    selDay = date;
+    if (!inWeek(date)) { weekStart = date; showSkeleton(); }
+    toast('Appointment added.');
+    safeLoad();
+  } catch (err) {
+    if (expired(err)) { logout(); return; }
+    $('#aErr').textContent = err.message || 'Error';
+  } finally { btn.disabled = false; btn.textContent = 'Save'; }
+});
+
+/* ---- closed times (Setting page) ---- */
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function ruleSub(x) {
+  const when = x.kind === 'weekly' ? (x.day === '*' ? 'Every day' : 'Every ' + WEEKDAYS[+x.day])
+    : (x.from === x.to ? dmy(x.from) : dmy(x.from) + ' – ' + dmy(x.to));
+  return when + ' · ' + (x.start ? x.start + ' – ' + x.end : 'All day');
+}
+function renderRules() {
+  const box = $('#ruleList'); box.replaceChildren();
+  if (!R.length) { box.append(h('div', { class: 'pempty', text: 'No closed times yet.' })); return; }
+  R.forEach(x => box.append(h('div', { class: 'crow' },
+    h('div', null, h('div', { class: 'ct', text: x.label || 'Closed' }), h('div', { class: 'cs', text: ruleSub(x) })),
+    h('div', { class: 'pbtns' }, h('button', { type: 'button', class: 'del', text: 'Remove', onclick: () => removeRule(x) })))));
+}
+function removeRule(x) {
+  confirmBox('Remove closed time?', (x.label || 'Closed') + ' · ' + ruleSub(x) + '. Those times become bookable again.', () => {
+    R = R.filter(y => y.id !== x.id); renderRules(); rulesDirty = true;
+    sync({ action: 'rule_delete', id: x.id }).then(() => toast('Closed time removed.'));
+  });
+}
+function toggleRuleKind() {
+  const range = $('#rKind').value === 'range';
+  $('#rDayBox').hidden = range; $('#rRangeBox').hidden = !range;
+}
+$('#rKind').onchange = toggleRuleKind;
+$('#rStart').onchange = syncRuleTime;
+$('#ruleForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const kind = $('#rKind').value, start = $('#rStart').value, end = start ? $('#rEnd').value : '';
+  const body = { action: 'rule_add', kind, start, end, label: $('#rLabel').value.trim() };
+  if (kind === 'weekly') body.day = $('#rDay').value;
+  else {
+    body.from = $('#rFrom').value; body.to = $('#rTo').value || body.from;
+    if (!body.from) { toast('Pick a start date.'); return; }
+    if (body.to < body.from) { toast('End date is before the start date.'); return; }
+  }
+  if (start && end <= start) { toast('End time must be after the start time.'); return; }
+  const btn = $('#rAdd'); btn.disabled = true;
+  try {
+    const r = await api(body);
+    if (!r.ok) throw new Error(r.error);
+    $('#rLabel').value = ''; $('#rFrom').value = ''; $('#rTo').value = '';
+    rulesDirty = true;
+    await loadSettings();
+    toast('Closed time added.');
+  } catch (err) { if (expired(err)) logout(); else toast(err.message || 'Error'); }
+  finally { btn.disabled = false; }
+});
+
 /* ---- confirm dialog ---- */
 const cfm = $('#cfm');
 let onYes = null;
@@ -719,7 +977,13 @@ function applyLocal(p) {
   if (p.action === 'disable') rows.push({ id: 'tmp' + (++tmpN), tmp: true, date: p.date, time: p.time, name: '', phone: '', status: 'Disabled' });
   else if (p.action === 'update') {
     const i = rows.findIndex(r => r.id === p.id); if (i < 0) return;
-    if (p.status === 'Cancelled') rows.splice(i, 1); else rows[i] = { ...rows[i], status: p.status };
+    if (p.status === 'Cancelled') rows.splice(i, 1);
+    else {
+      const was = rows[i].status; let n = rows[i].noShows || 0;
+      if (p.status === 'No-show' && was !== 'No-show') n++;
+      if (was === 'No-show' && p.status !== 'No-show') n--;
+      rows[i] = { ...rows[i], status: p.status, noShows: n };
+    }
   }
 }
 function act(payload, okMsg) {
@@ -744,7 +1008,7 @@ function act(payload, okMsg) {
 }
 
 /* ---- session ---- */
-function showApp() { $('#loginPage').hidden = true; $('#app').hidden = false; applyPage(); if (location.hash !== '#setting') loadSettings(); }
+function showApp() { $('#loginPage').hidden = true; $('#app').hidden = false; fillTimeOptions(); applyPage(); if (location.hash !== '#setting') loadSettings(); }
 function logout() { sessionStorage.removeItem('adminTok'); token = ''; location.reload(); }
 
 async function signIn(pw) {
