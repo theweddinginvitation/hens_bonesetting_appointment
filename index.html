@@ -184,6 +184,7 @@
   .done .addr { display:inline-block; margin-top:14px; padding:6px 0; color:var(--blue); font-weight:500; text-decoration:none; }
   .done .addr:hover { text-decoration:underline; text-underline-offset:3px; }
   .done .btn { width:100%; margin-top:20px; }
+  .done .btn + .btn { margin-top:10px; }
 
   /* photo viewer */
   dialog#lb { width:100%; height:100%; height:100dvh; max-width:none; max-height:none; margin:0; border:0; border-radius:0; padding:0; overflow:hidden; background:rgba(0,0,0,.94); -webkit-backdrop-filter:blur(30px); backdrop-filter:blur(30px); color:#fff; box-shadow:none; transform:scale(1.04); transition:opacity .35s var(--ease), transform .55s var(--ease), overlay .55s allow-discrete, display .55s allow-discrete; }
@@ -272,6 +273,7 @@
     <p class="sum" id="doneDate"></p>
     <p class="jam" id="doneTime"></p>
     <a class="addr" id="addr" target="_blank" rel="noopener">Klik disini untuk melihat alamat kami</a>
+    <button type="button" class="btn ghost" id="ics">Tambah ke Kalender</button>
     <button type="button" class="btn primary" id="done">Selesai</button>
   </div>
 </dialog>
@@ -511,6 +513,8 @@ $('#form').addEventListener('submit', async e => {
     $('#doneDate').textContent = fullDate(picked.date);
     $('#doneTime').textContent = 'Pukul: ' + range(picked.time);
     $('#addr').href = addressUrl();
+    const mine = { date: picked.date, time: picked.time };
+    $('#ics').onclick = () => downloadIcs(mine.date, mine.time);
     $('#formView').hidden = true; $('#doneView').hidden = false;
     $('#done').focus();
     load();
@@ -519,6 +523,24 @@ $('#form').addEventListener('submit', async e => {
     save.disabled = false; save.textContent = 'Simpan';
   }
 });
+
+/* ---- add to calendar (.ics, floating local time) ---- */
+function downloadIcs(date, time) {
+  const d = date.replace(/-/g, ''), t = x => x.replace(':', '') + '00';
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const ics = [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Hens Bone Setting//Reservasi//ID', 'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT', 'UID:' + d + 'T' + t(time) + '@hens-bone-setting', 'DTSTAMP:' + stamp,
+    'DTSTART:' + d + 'T' + t(time), 'DTEND:' + d + 'T' + t(endTime(time, cfg.slotMinutes)),
+    "SUMMARY:Janji temu - Hen's Bone Setting",
+    'BEGIN:VALARM', 'TRIGGER:-PT1H', 'ACTION:DISPLAY', 'DESCRIPTION:Janji temu 1 jam lagi', 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'
+  ].join('\r\n');
+  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+  const a = document.createElement('a'); a.href = url; a.download = 'janji-temu.ics';
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 /* ---- carousel (images are managed from admin.html) ---- */
 const CAR = $('#carousel'), carWrap = $('#carWrap');
