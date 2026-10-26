@@ -204,6 +204,38 @@
   .lbslide.zoomed { display:block; overflow:auto; padding:0; -webkit-overflow-scrolling:touch; }
   .lbslide.zoomed img { max-width:none; max-height:none; width:240%; height:auto; margin:0; display:block; cursor:zoom-out; border-radius:0; }
 
+  /* my booking card, move hint, held slots, toast */
+  .reserve { scroll-margin-top:72px; }
+  .mine-wrap { padding-top:6px; }
+  .mine { margin-top:14px; background:var(--surface); border-radius:24px; padding:16px 18px 18px; box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 .5px rgba(0,0,0,.05), 0 10px 26px rgba(0,122,255,.12); }
+  .mine-wrap:not([hidden]) .mine { animation:rise .7s var(--ease) backwards; }
+  .mt { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .ml { font-size:12.5px; font-weight:600; color:var(--muted); letter-spacing:.02em; text-transform:uppercase; }
+  .mst { font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; background:#fff6e5; color:#b36200; white-space:nowrap; }
+  .mst.ok { background:#e8f8ed; color:#1f8a3d; }
+  .mine h2 { margin:8px 0 0; font-family:var(--display); font-size:21px; font-weight:700; letter-spacing:-.022em; }
+  .mtime { font-family:var(--display); font-size:17px; font-weight:600; color:var(--blue); font-variant-numeric:tabular-nums; margin-top:1px; }
+  .mine .cd { margin:4px 0 14px; color:var(--muted); font-size:14px; font-weight:500; }
+  .macts { display:flex; gap:8px; }
+  .macts button { flex:1 1 0; min-height:42px; border:0; border-radius:12px; padding:10px 8px; font-weight:600; font-size:15px; background:var(--chip); color:var(--blue); cursor:pointer; transition:transform .5s var(--spring), background .2s; }
+  .macts button:active { transform:scale(.95); transition-duration:.1s; }
+  .macts .danger { color:#d1322b; }
+  @media (hover:hover) { .macts button:hover { background:rgba(120,120,128,.2); } }
+  .movehint { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 4px; padding:10px 14px; border-radius:14px; background:var(--blue-soft); color:var(--blue-deep); font-size:14px; font-weight:600; }
+  .movehint button { border:0; background:transparent; color:var(--blue-deep); font-weight:700; font-size:14px; padding:6px 4px; cursor:pointer; }
+  .holdnote { margin:6px 0 0; font-size:13px; font-weight:500; color:var(--muted); }
+  .holdnote.ok { color:#1f8a3d; }
+  .legend { flex-wrap:wrap; gap:6px 18px; }
+  .legend .l-held { background:#fff6e5; border:1.5px solid #f5a623; }
+  .slot.held { background:#fff6e5; box-shadow:none; color:#b36200; cursor:not-allowed; }
+  .slot.held small::before { background:transparent; border:1.5px solid currentColor; }
+  .slot.mine { background:var(--blue-soft); box-shadow:none; color:var(--blue-deep); cursor:default; }
+  .day.off { background:rgba(120,120,128,.1); } .day.off .dc { color:#9a9aa1; }
+  .btn.danger { background:#ff3b30; color:#fff; }
+  .btn.danger:disabled { opacity:.6; }
+  .toast { position:fixed; left:50%; bottom:calc(22px + env(safe-area-inset-bottom,0px)); z-index:60; max-width:calc(100% - 32px); padding:12px 18px; border-radius:16px; background:rgba(29,29,31,.94); color:#fff; font-size:15px; font-weight:600; opacity:0; transform:translate(-50%,16px); pointer-events:none; transition:opacity .3s var(--ease), transform .5s var(--spring); }
+  .toast.on { opacity:1; transform:translate(-50%,0); }
+
   /* ================= mobile performance + touch ================= */
   button { touch-action:manipulation; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
   /* skeletons pulse with opacity (compositor) instead of repainting a gradient every frame */
@@ -257,6 +289,20 @@
   </div>
 </header>
 
+<section class="wrap mine-wrap" id="mineWrap" hidden aria-label="Janji temu Anda">
+  <div class="mine">
+    <div class="mt"><span class="ml">Janji temu Anda</span><span class="mst" id="mSt"></span></div>
+    <h2 id="mDate"></h2>
+    <div class="mtime" id="mTime"></div>
+    <p class="cd" id="mCd"></p>
+    <div class="macts">
+      <button type="button" id="mChange">Ubah jadwal</button>
+      <button type="button" id="mIcs">Kalender</button>
+      <button type="button" id="mCancel" class="danger">Batalkan</button>
+    </div>
+  </div>
+</section>
+
 <div class="wrap" id="carWrap">
   <h2 class="ctitle">Pengumuman</h2>
   <section class="carousel loading" id="carousel" aria-roledescription="carousel" aria-label="Galeri foto"></section>
@@ -264,6 +310,7 @@
 
 <section class="wrap reserve">
   <h1>Reservasi</h1>
+  <div class="movehint" id="moveHint" hidden><span>Pilih jam baru untuk janji temu Anda.</span><button type="button" id="moveX">Batal</button></div>
   <div id="days" role="group" aria-label="Pilih hari"></div>
 </section>
 
@@ -275,6 +322,7 @@
   <div class="legend" aria-hidden="true">
     <span><i class="l-free"></i>Tersedia</span>
     <span><i class="l-taken"></i>Tidak tersedia</span>
+    <span><i class="l-held"></i>Sedang dipesan</span>
   </div>
   <div id="slots" aria-live="polite"></div>
 </main>
@@ -287,6 +335,7 @@
       <button type="button" class="x" id="close" aria-label="Tutup">&times;</button>
       <p class="when" id="dWhen"></p>
       <h2 id="dTitle"></h2>
+      <p class="holdnote" id="holdNote" hidden></p>
     </div>
     <form id="form" novalidate>
       <p class="err" id="formErr" role="alert"></p>
@@ -330,14 +379,31 @@
   </div>
 </dialog>
 
+<dialog id="cxl" aria-labelledby="cxlTitle">
+  <div class="dupbox">
+    <h2 id="cxlTitle">Batalkan janji temu?</h2>
+    <p id="cxlMsg"></p>
+    <p class="err" id="cxlErr" role="alert"></p>
+    <div class="dupbtns">
+      <button type="button" class="btn ghost" id="cxlNo">Tidak</button>
+      <button type="button" class="btn danger" id="cxlYes">Ya, batalkan</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script src="config.js"></script>
 <script>
 const $ = s => document.querySelector(s);
-const dlg = $('#dlg'), dup = $('#dup'), lb = $('#lb'), lbTrack = $('#lbTrack');
+const dlg = $('#dlg'), dup = $('#dup'), cxl = $('#cxl'), lb = $('#lb'), lbTrack = $('#lbTrack');
 const LOCALE = 'id-ID';
 const tmo = ms => (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(ms) : undefined;   // GET requests give up after 15 s
 const canHover = matchMedia('(hover:hover)').matches;     // phones: no auto-focus, so the keyboard does not fight the dialog
-let cfg = null, taken = new Set(), selDate = null, picked = null;
+let cfg = null, taken = new Set(), held = new Set(), selDate = null, picked = null, loadedAt = 0;
+let myHold = null, moveMode = false, mineStatus = '', mineChecked = false;
+let hid = ''; try { hid = sessionStorage.getItem('hbs_hid') || ''; } catch (e) {}
+if (!hid) { hid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now(); try { sessionStorage.setItem('hbs_hid', hid); } catch (e) {} }
 
 // 0812 3456 7890 -> +6281234567890 ; 62812... -> +62812... ; 0062... -> +62...
 function normPhone(p) {
@@ -359,8 +425,28 @@ function endTime(t, mins) {
 function range(t) { return t + ' - ' + endTime(t, cfg.slotMinutes); }
 function fmt(ymd, opts) { return localDate(ymd).toLocaleDateString(LOCALE, opts); }
 function fullDate(ymd) { return fmt(ymd, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
-function isFree(date, t) { const k = date + ' ' + t; return !taken.has(k) && k > cfg.now; }
-function openCount(date) { return cfg.times.filter(t => isFree(date, t)).length; }
+const pad2 = n => String(n).padStart(2, '0');
+function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+function wday(ymd) { const [y, m, d] = parts(ymd); return new Date(Date.UTC(y, m - 1, d)).getUTCDay(); }
+// slot start times of one date, following that weekday's opening hours (empty = closed)
+function timesOn(ymd) {
+  const h = cfg.hours && cfg.hours[wday(ymd)];
+  if (!h) return cfg.times;
+  if (!h.open) return [];
+  const out = [];
+  for (let m = toMin(h.start); m + cfg.slotMinutes <= toMin(h.end); m += cfg.slotMinutes) out.push(pad2(Math.floor(m / 60)) + ':' + pad2(m % 60));
+  return out;
+}
+// 'free' | 'taken' | 'held' (someone else is filling the form) | 'mine'
+function slotState(date, t) {
+  const k = date + ' ' + t, m = getMine();
+  if (m && m.date + ' ' + m.time === k) return 'mine';
+  if (taken.has(k) || k <= cfg.now) return 'taken';
+  if (held.has(k) && myHold !== k) return 'held';
+  return 'free';
+}
+function isFree(date, t) { return slotState(date, t) === 'free'; }
+function openCount(date) { return timesOn(date).filter(t => isFree(date, t)).length; }
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 function addressUrl() {
   if (typeof ADDRESS_URL !== 'undefined' && ADDRESS_URL && !ADDRESS_URL.startsWith('PASTE')) return ADDRESS_URL;
@@ -369,13 +455,13 @@ function addressUrl() {
 
 /* ---- existing appointment (this device) ---- */
 const STORE = 'hbs_booking';
-function saveMine(b) { try { localStorage.setItem(STORE, JSON.stringify(b)); } catch (e) {} }
+let mineB = null;
+try { mineB = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) {}
+function saveMine(b) { mineB = b; mineStatus = ''; try { localStorage.setItem(STORE, JSON.stringify(b)); } catch (e) {} }
+function clearMine() { mineB = null; mineStatus = ''; try { localStorage.removeItem(STORE); } catch (e) {} }
 function getMine() {
-  try {
-    const b = JSON.parse(localStorage.getItem(STORE) || 'null');
-    if (b && b.date && b.time && (b.date + ' ' + b.time) > cfg.now) return b;
-  } catch (e) {}
-  return null;
+  const b = mineB;
+  return b && b.date && b.time && cfg && (b.date + ' ' + b.time) > cfg.now ? b : null;
 }
 let pending = null;
 function askChange(date, time) {
@@ -414,13 +500,17 @@ async function load() {
     if (!d.ok) throw new Error(d.error);
     cfg = d.config;
     taken = new Set(d.taken.map(t => t.date + ' ' + t.time));
+    held = new Set((d.held || []).map(t => t.date + ' ' + t.time));
+    loadedAt = Date.now();
     if (!selDate || selDate < cfg.today) selDate = cfg.today;
     render();
+    if (!mineChecked) { mineChecked = true; checkMine(); } else renderMine();
   } catch (e) {
     if (!cfg) showNote('Jadwal gagal dimuat. Periksa koneksi internet Anda.', true);
   }
 }
 
+function dKey() { return cfg.today + '|' + cfg.days + '|' + cfg.slotMinutes + '|' + JSON.stringify(cfg.hours || ''); }
 function buildDays() {
   const strip = $('#days'); strip.replaceChildren(); dayEls = [];
   for (let i = 0; i < cfg.days; i++) {
@@ -435,18 +525,25 @@ function buildDays() {
     };
     strip.append(b); dayEls.push({ b, c, ymd });
   }
-  daysKey = cfg.today + '|' + cfg.days;
+  daysKey = dKey();
 }
-function buildSlots() {
+function buildSlots(times) {
   const list = $('#slots'); list.replaceChildren(); slotEls = [];
-  cfg.times.forEach(t => {
+  if (!times.length) list.append(el('div', 'note', 'Tutup pada hari ini. Silakan pilih hari lain.'));
+  times.forEach(t => {
     const b = el('button', 'slot'), s = el('small');
     b.type = 'button';
     b.append(s, el('b', null, range(t)));
-    b.onclick = () => { if (!isFree(selDate, t)) return; getMine() ? askChange(selDate, t) : openDialog(selDate, t); };
+    b.onclick = () => {
+      if (!isFree(selDate, t)) return;
+      const m = getMine();
+      if (m && moveMode) openDialog(selDate, t, m);
+      else if (m) askChange(selDate, t);
+      else openDialog(selDate, t);
+    };
     list.append(b); slotEls.push({ b, s, t });
   });
-  timesKey = cfg.times.join() + '|' + cfg.slotMinutes;
+  timesKey = times.join() + '|' + cfg.slotMinutes + (times.length ? '' : '|closed');
 }
 function animateSlots() {
   slotEls.forEach(x => x.b.classList.remove('in'));
@@ -454,32 +551,35 @@ function animateSlots() {
   slotEls.forEach((x, i) => { x.b.style.setProperty('--i', Math.min(i, 10)); x.b.classList.add('in'); });
 }
 
+const STATE_TEXT = { free: 'Tersedia', taken: 'Tidak tersedia', held: 'Sedang dipesan', mine: 'Jadwal Anda' };
 function render() {
-  if (daysKey !== cfg.today + '|' + cfg.days) buildDays();
-  if (timesKey !== cfg.times.join() + '|' + cfg.slotMinutes) { buildSlots(); lastSig = null; shownDay = null; }
+  if (daysKey !== dKey()) { buildDays(); lastSig = null; }
+  const times = timesOn(selDate);
+  const tk = times.join() + '|' + cfg.slotMinutes + (times.length ? '' : '|closed');
+  if (timesKey !== tk) { buildSlots(times); lastSig = null; shownDay = null; }
   const counts = dayEls.map(d => openCount(d.ymd));
-  const flags = cfg.times.map(t => isFree(selDate, t) ? 1 : 0).join('');
-  const sig = selDate + '|' + counts.join() + '|' + flags;
+  const states = times.map(t => slotState(selDate, t));
+  const sig = selDate + '|' + counts.join() + '|' + states.map(x => x[0]).join('');
   if (sig === lastSig) return;                             // nothing changed: touch nothing
   lastSig = sig;
 
   dayEls.forEach((d, i) => {
-    const n = counts[i];
-    d.b.className = 'day ' + (n === 0 ? 'none' : n <= 2 ? 'low' : 'ok');
+    const n = counts[i], off = timesOn(d.ymd).length === 0;
+    d.b.className = 'day ' + (off ? 'off' : n === 0 ? 'none' : n <= 2 ? 'low' : 'ok');
     d.b.setAttribute('aria-pressed', d.ymd === selDate);
-    d.b.setAttribute('aria-label', fullDate(d.ymd) + ', ' + n + ' jam tersedia');
-    d.c.textContent = n ? n + ' kosong' : 'Penuh';
+    d.b.setAttribute('aria-label', fullDate(d.ymd) + (off ? ', tutup' : ', ' + n + ' jam tersedia'));
+    d.c.textContent = off ? 'Tutup' : n ? n + ' kosong' : 'Penuh';
   });
   const n = counts[dayEls.findIndex(d => d.ymd === selDate)];
   $('#dayTitle').textContent = fullDate(selDate);
-  $('#dayCount').textContent = n ? n + ' dari ' + cfg.times.length + ' jam tersedia' : 'Semua jam sudah terisi';
+  $('#dayCount').textContent = !times.length ? 'Tutup' : n ? n + ' dari ' + times.length + ' jam tersedia' : 'Semua jam sudah terisi';
 
-  slotEls.forEach(x => {
-    const free = isFree(selDate, x.t);
-    x.b.classList.toggle('free', free); x.b.classList.toggle('taken', !free);
-    x.b.disabled = !free;
-    x.s.textContent = free ? 'Tersedia' : 'Tidak tersedia';
-    x.b.setAttribute('aria-label', range(x.t) + (free ? ', tersedia' : ', tidak tersedia'));
+  slotEls.forEach((x, i) => {
+    const st = states[i];
+    ['free', 'taken', 'held', 'mine'].forEach(c => x.b.classList.toggle(c, c === st));
+    x.b.disabled = st !== 'free';
+    x.s.textContent = STATE_TEXT[st];
+    x.b.setAttribute('aria-label', range(x.t) + ', ' + STATE_TEXT[st].toLowerCase());
   });
   if (shownDay !== selDate) { shownDay = selDate; animateSlots(); }
 }
@@ -501,9 +601,10 @@ function openDialog(date, time, old) {
   $('#save').disabled = false; $('#save').textContent = 'Simpan';
   dlg.showModal();
   if (canHover) $('#name').focus(); else $('#close').blur();
+  startHold(date, time);
 }
 function closeDialog() { if (dlg.open) dlg.close(); }
-dlg.addEventListener('close', () => { picked = null; });
+dlg.addEventListener('close', () => { const p = endHold(true); picked = null; Promise.resolve(p).then(load, load); });
 dlg.addEventListener('click', e => { if (e.target === dlg) closeDialog(); }); // backdrop
 $('#close').onclick = closeDialog;
 $('#done').onclick = closeDialog;
@@ -526,8 +627,8 @@ $('#form').addEventListener('submit', async e => {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(picked.old
-        ? { action: 'reschedule', oldDate: picked.old.date, oldTime: picked.old.time, date: picked.date, time: picked.time, name, phone }
-        : { action: 'book', date: picked.date, time: picked.time, name, phone })
+        ? { action: 'reschedule', oldDate: picked.old.date, oldTime: picked.old.time, date: picked.date, time: picked.time, name, phone, hid }
+        : { action: 'book', date: picked.date, time: picked.time, name, phone, hid })
     });
     const d = await r.json();
     if (!d.ok) {
@@ -546,7 +647,9 @@ $('#form').addEventListener('submit', async e => {
       if (gone) setTimeout(closeDialog, 2200);
       return;
     }
+    endHold(false); setMove(false);
     saveMine({ date: picked.date, time: picked.time, name, phone });
+    mineStatus = 'Pending';
     $('#doneDate').textContent = fullDate(picked.date);
     $('#doneTime').textContent = 'Pukul: ' + range(picked.time);
     $('#addr').href = addressUrl();
@@ -554,12 +657,109 @@ $('#form').addEventListener('submit', async e => {
     $('#ics').onclick = () => downloadIcs(mine.date, mine.time);
     $('#formView').hidden = true; $('#doneView').hidden = false;
     $('#done').focus();
-    load();
+    load().then(renderMine);
   } catch (err) {
     setErr('formErr', 'Tidak ada koneksi. Periksa internet Anda lalu tekan Simpan lagi.');
     save.disabled = false; save.textContent = 'Simpan';
   }
 });
+
+/* ---- soft hold: the chosen time stays reserved while the form is open ---- */
+function post(body, keep) {
+  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), keepalive: !!keep }).then(r => r.json());
+}
+let holdTimer = 0;
+function setHoldNote(kind) {
+  const n = $('#holdNote');
+  n.hidden = !kind; n.className = 'holdnote' + (kind === 'ok' ? ' ok' : '');
+  n.textContent = kind === 'ok' ? 'Jam ini ditahan untuk Anda selama Anda mengisi.' : kind === 'wait' ? 'Menahan jam untuk Anda…' : '';
+}
+function holdFailed(p, err) {
+  endHold(false);
+  if (picked !== p) return;
+  setErr('formErr', /too many/i.test(err || '') ? 'Sedang banyak yang memesan. Coba lagi sebentar lagi.' : 'Maaf, jam ini sedang dipesan orang lain. Silakan pilih jam lain.');
+  $('#save').disabled = true;
+  setTimeout(() => { if (picked === p) closeDialog(); }, 2600);
+}
+function startHold(date, time) {
+  endHold(false);
+  const key = date + ' ' + time, p = picked;
+  myHold = key; setHoldNote('wait');
+  const attempt = async first => {
+    try {
+      const r = await post({ action: 'hold', hid, date, time });
+      if (picked !== p || myHold !== key) return;
+      if (r.ok) setHoldNote('ok'); else holdFailed(p, r.error);
+    } catch (e) { if (first && picked === p) setHoldNote(''); }
+  };
+  attempt(true);
+  holdTimer = setInterval(() => attempt(false), 45000);   // the server keeps a hold for 120 s
+}
+function endHold(release) {
+  clearInterval(holdTimer); setHoldNote('');
+  if (!myHold) return;
+  myHold = null;
+  if (release) return post({ action: 'release', hid }, true).catch(() => {});
+}
+
+/* ---- my booking card (top of page) ---- */
+function setText(e, v) { if (e.textContent !== v) e.textContent = v; }
+function minutesOf(s) { const [d, t] = s.split(' '), [y, m, dd] = parts(d), [h, mi] = t.split(':').map(Number); return Date.UTC(y, m - 1, dd, h, mi) / 60000; }
+function nowMin() { return minutesOf(cfg.now) + Math.floor((Date.now() - loadedAt) / 60000); }
+function until(m) {
+  const diff = minutesOf(m.date + ' ' + m.time) - nowMin();
+  if (diff <= 0) return null;
+  if (diff < 60) return 'Dalam ' + diff + ' menit';
+  const h = Math.floor(diff / 60), mi = diff % 60;
+  if (diff < 1440) return (m.date === cfg.today ? 'Hari ini, dalam ' : 'Dalam ') + h + ' jam' + (mi ? ' ' + mi + ' menit' : '');
+  const d = Math.floor(diff / 1440), hh = Math.floor((diff % 1440) / 60);
+  return 'Dalam ' + d + ' hari' + (hh ? ' ' + hh + ' jam' : '');
+}
+function renderMine() {
+  const w = $('#mineWrap'), m = cfg && getMine(), cd = m && until(m);
+  if (!m || cd == null) { w.hidden = true; return; }
+  w.hidden = false;
+  setText($('#mDate'), fullDate(m.date)); setText($('#mTime'), range(m.time)); setText($('#mCd'), cd);
+  const ok = mineStatus === 'Approved', st = $('#mSt');
+  setText(st, ok ? 'Dikonfirmasi' : 'Menunggu konfirmasi'); st.className = 'mst' + (ok ? ' ok' : '');
+}
+// ask the server whether this booking is still on the books (admin may have cancelled it) and what its status is
+async function checkMine() {
+  const m = getMine();
+  if (!m) { renderMine(); return; }
+  try {
+    const r = await post({ action: 'mine', phone: m.phone, date: m.date, time: m.time });
+    if (r.ok && !r.found) { clearMine(); lastSig = null; render(); }
+    else if (r.ok) mineStatus = r.status;
+  } catch (e) {}
+  renderMine();
+}
+function setMove(on) { moveMode = on; $('#moveHint').hidden = !on; }
+let toastT = 0;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
+$('#mChange').onclick = () => { setMove(true); document.querySelector('.reserve').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+$('#moveX').onclick = () => setMove(false);
+$('#mIcs').onclick = () => { const m = getMine(); if (m) downloadIcs(m.date, m.time); };
+$('#mCancel').onclick = () => {
+  const m = getMine(); if (!m) return;
+  $('#cxlMsg').textContent = fullDate(m.date) + ', pukul ' + range(m.time) + '.';
+  $('#cxlErr').textContent = ''; $('#cxlYes').disabled = false;
+  cxl.showModal();
+};
+$('#cxlNo').onclick = () => cxl.close();
+cxl.addEventListener('click', e => { if (e.target === cxl) cxl.close(); });
+$('#cxlYes').onclick = async () => {
+  const m = getMine(), b = $('#cxlYes');
+  if (!m) { cxl.close(); return; }
+  b.disabled = true;
+  try {
+    const r = await post({ action: 'cancel', phone: m.phone, date: m.date, time: m.time });
+    if (r.ok || /not found/i.test(r.error || '')) {
+      clearMine(); setMove(false); cxl.close(); renderMine(); toast('Janji temu dibatalkan.');
+      lastSig = null; load();
+    } else { $('#cxlErr').textContent = 'Gagal membatalkan. Silakan coba lagi.'; b.disabled = false; }
+  } catch (e) { $('#cxlErr').textContent = 'Tidak ada koneksi. Silakan coba lagi.'; b.disabled = false; }
+};
 
 /* ---- add to calendar (.ics, floating local time) ---- */
 function downloadIcs(date, time) {
@@ -682,7 +882,7 @@ let lastAct = Date.now();
 ['pointerdown', 'touchstart', 'scroll', 'wheel', 'keydown'].forEach(ev =>
   window.addEventListener(ev, () => { lastAct = Date.now(); }, { passive: true, capture: true })); // capture: also sees scrolling inside the carousel / day strip
 function idleCheck() {
-  if (dlg.open || dup.open || lb.open) { lastAct = Date.now(); return; } // never reload while a dialog is open
+  if (dlg.open || dup.open || cxl.open || lb.open) { lastAct = Date.now(); return; } // never reload while a dialog is open
   if (Date.now() - lastAct >= 60000) location.reload();
 }
 setInterval(() => { if (!document.hidden) idleCheck(); }, 5000);
@@ -691,8 +891,10 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) idle
 showSkeleton();
 load();
 loadCarousel();
-setInterval(() => { if (!dlg.open && !document.hidden) load(); }, 30000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && !dlg.open) load(); });
+setInterval(() => { if (!dlg.open && !cxl.open && !document.hidden) load(); }, 15000);
+setInterval(() => { if (cfg && !document.hidden) renderMine(); }, 30000);   // countdown
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !dlg.open) { load(); if (cfg) checkMine(); } });
+window.addEventListener('pagehide', () => { if (myHold) post({ action: 'release', hid }, true).catch(() => {}); });
 window.addEventListener('pageshow', e => { if (e.persisted) load(); });   // back/forward cache
 </script>
 </body>
