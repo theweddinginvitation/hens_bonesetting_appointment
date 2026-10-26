@@ -319,6 +319,32 @@
     .hero, dialog, .login { background:#fff; }
     .fnav { background:#fff; }
   }
+
+  /* opening hours, switches, notifications, drag to move */
+  .sw { -webkit-appearance:none; appearance:none; flex:none; margin:0; width:51px; height:31px; border-radius:999px; background:rgba(120,120,128,.32); position:relative; cursor:pointer; transition:background .3s var(--ease); }
+  .sw::after { content:""; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.25); transition:transform .45s var(--spring); }
+  .sw:checked { background:#34c759; } .sw:checked::after { transform:translateX(20px); }
+  .sw:focus-visible { outline:3px solid rgba(0,122,255,.55); outline-offset:2px; }
+  .hrow { padding:12px 0; } .hrow + .hrow { box-shadow:0 -.5px 0 var(--line); }
+  .hhead { display:flex; align-items:center; justify-content:space-between; gap:10px; font-weight:600; letter-spacing:-.01em; }
+  .htimes { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px; margin-top:10px; color:var(--muted); font-size:14px; }
+  .fld.tm { min-width:0; text-align:center; padding:11px 8px; }
+  .hactions { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; } .hactions .btn { flex:1 1 150px; padding:13px 14px; font-size:16px; }
+  .panel .fgrid label, .panel label.l { display:block; font-weight:600; font-size:13px; color:var(--muted); margin:0 0 6px 4px; }
+  .panel form .fld + .fld, .panel .lblrow + .lblrow { margin-top:10px; }
+  .lblrow { margin-bottom:12px; } .lblrow label { display:block; font-weight:600; font-size:13px; color:var(--muted); margin:0 0 6px 4px; }
+  .trow { display:flex; gap:8px; } .trow .fld { flex:1; min-width:0; } .trow .btn { padding:0 16px; font-size:15px; }
+  .swrow { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:4px 0 14px; font-weight:600; }
+  .nhint { margin:0 0 14px; font-size:13px; color:var(--muted); word-break:break-word; }
+  .offcell { min-height:96px; border-radius:18px; display:grid; place-items:center; color:#b7b7bd; font-weight:600; background:repeating-linear-gradient(135deg,rgba(120,120,128,.07) 0 2px,transparent 2px 9px); }
+  .lnote { padding:30px 10px; text-align:center; color:var(--muted); font-weight:500; }
+  .card.dragable { cursor:grab; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+  .card.lifted { opacity:.35; }
+  body.dragging, body.dragging * { cursor:grabbing !important; -webkit-user-select:none; user-select:none; }
+  body.dragging .cell[data-drop] .empty { background:rgba(0,122,255,.07); color:var(--blue); box-shadow:inset 0 0 0 1.5px rgba(0,122,255,.25); }
+  body.dragging .cell.dropok .empty { background:var(--blue-soft); box-shadow:inset 0 0 0 2.5px var(--blue); transform:scale(.97); }
+  .ghostcard { position:fixed; left:0; top:0; z-index:90; margin:0; pointer-events:none; opacity:.96; box-shadow:0 18px 40px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.1) !important; will-change:transform; }
+  @media (max-width:430px) { .htimes { gap:6px; } }
 </style>
 </head>
 <body>
@@ -376,6 +402,19 @@
       </div>
       <div id="pList"></div>
     </section>
+    <section class="panel" id="hoursPanel">
+      <h2>Opening hours</h2>
+      <p class="hint2">Slot length, how many days customers can book ahead, and the hours of each weekday. Existing bookings outside the new hours stay on the calendar.</p>
+      <div class="fgrid">
+        <div><label for="hSlot">Slot length</label><select class="fld" id="hSlot"></select></div>
+        <div><label for="hDays">Days ahead</label><input class="fld" id="hDays" type="number" min="1" max="60" inputmode="numeric"></div>
+      </div>
+      <div id="hRows"></div>
+      <div class="hactions">
+        <button type="button" class="btn ghost" id="hCopy">Copy Monday to all</button>
+        <button type="button" class="btn primary" id="hSave">Save hours</button>
+      </div>
+    </section>
     <section class="panel" id="rulePanel">
       <h2>Closed times</h2>
       <p class="hint2">Weekly days off, daily breaks and holidays. Customers cannot book these times. Existing bookings stay.</p>
@@ -407,6 +446,35 @@
         <input id="fText" maxlength="200" placeholder="Hen's Bone Setting" autocomplete="off">
         <button type="button" class="btn primary" id="fSave">Save</button>
       </div>
+    </section>
+    <section class="panel" id="notifyPanel">
+      <h2>New booking alerts</h2>
+      <p class="hint2">Get a push notification on your phone for every new booking, plus an optional email.</p>
+      <div class="swrow"><span id="nOnL">Send alerts</span><input type="checkbox" class="sw" id="nOn" aria-labelledby="nOnL"></div>
+      <div class="lblrow"><label for="nTopic">Topic (ntfy.sh)</label>
+        <div class="trow"><input class="fld" id="nTopic" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="my-secret-topic"><button type="button" class="btn ghost" id="nGen">Generate</button></div></div>
+      <p class="nhint" id="nHint"></p>
+      <div class="lblrow"><label for="nEmail">Email (optional)</label><input class="fld" id="nEmail" type="email" inputmode="email" autocomplete="off" placeholder="you@example.com"></div>
+      <div class="lblrow"><label for="nUrl">Link opened by the alert (optional)</label><input class="fld" id="nUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://your-site/admin.html"></div>
+      <div class="hactions">
+        <button type="button" class="btn ghost" id="nTest">Send test</button>
+        <button type="button" class="btn primary" id="nSave">Save</button>
+      </div>
+    </section>
+    <section class="panel" id="pwPanel">
+      <h2>Admin password</h2>
+      <p class="hint2">Other devices are signed out when you change it.</p>
+      <form id="pwForm" novalidate>
+        <div class="lblrow"><label for="pwCur">Current password</label><input class="fld" id="pwCur" type="password" autocomplete="current-password"></div>
+        <div class="lblrow"><label for="pwNew">New password (8+ characters)</label><input class="fld" id="pwNew" type="password" autocomplete="new-password" maxlength="100"></div>
+        <div class="lblrow"><label for="pwNew2">Repeat new password</label><input class="fld" id="pwNew2" type="password" autocomplete="new-password" maxlength="100"></div>
+        <button type="submit" class="btn primary" id="pwSave" style="width:100%">Change password</button>
+      </form>
+    </section>
+    <section class="panel" id="archPanel">
+      <h2>Archive</h2>
+      <p class="hint2" id="mNote">Old appointments move to the Archive tab so the booking sheet stays fast.</p>
+      <button type="button" class="btn ghost" id="mRun" style="width:100%">Archive old appointments now</button>
     </section>
   </main>
   <nav class="fnav" aria-label="Pages">
@@ -473,7 +541,7 @@
 <script>
 const $ = s => document.querySelector(s);
 const mq = window.matchMedia('(min-width:900px)');
-let token = '', cfg = null, weekStart = '', rows = [], selDay = '', closed = new Map(), R = [], rulesDirty = false;
+let timeKey = '', token = '', cfg = null, weekStart = '', rows = [], selDay = '', closed = new Map(), R = [], rulesDirty = false;
 
 function h(tag, props, ...kids) {
   const e = document.createElement(tag);
@@ -498,9 +566,9 @@ function waLink(phone) {
   if (d.startsWith('0')) d = '62' + d.slice(1);
   return 'https://wa.me/' + d;
 }
-function toast(msg) {
+function toast(msg, ms) {
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toast.id); toast.id = setTimeout(() => t.classList.remove('show'), 3500);
+  clearTimeout(toast.id); toast.id = setTimeout(() => t.classList.remove('show'), ms || 3500);
 }
 
 /* ---- api: password is sent only by login(); afterwards a short-lived token is used ---- */
@@ -519,6 +587,9 @@ async function load() {
   if (!r.ok) throw new Error(r.error);
   cfg = r.config; weekStart = r.from; rows = r.rows;
   closed = new Map((r.closed || []).map(c => [c.date + ' ' + c.time, c.label]));
+  const tk = JSON.stringify([cfg.times, cfg.slotMinutes]);
+  if (tk !== timeKey) { timeKey = tk; fillTimeOptions(); }
+  detectNew();
   const week = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   if (!week.includes(selDay)) selDay = week.includes(cfg.today) ? cfg.today : weekStart;
   render();
@@ -566,7 +637,7 @@ function render() {
       h('span', { class: 'dn', text: d === cfg.today ? 'Today' : dow(d) }),
       h('span', { class: 'dd', text: localDate(d).getDate() }),
       np ? h('span', { class: 'np', text: np }) : null);
-    b.setAttribute('aria-pressed', d === selDay);
+    b.setAttribute('aria-pressed', d === selDay); b.dataset.d = d;
     tabs.append(b);
   });
   tabs.scrollLeft = keepX;
@@ -577,13 +648,15 @@ function render() {
     g.append(h('div'));
     days.forEach(d => g.append(h('div', { class: 'dh' + (d === cfg.today ? ' today' : '') },
       h('b', { text: dow(d) }), h('span', { text: md(d) }))));
-    cfg.times.forEach(t => {
+    weekTimes(days).forEach(t => {
       g.append(h('div', { class: 'tl', text: t }));
       days.forEach(d => g.append(cell(d, t, byKey.get(d + ' ' + t))));
     });
   } else {
     list.append(h('p', { text: longDate(selDay), style: 'margin:0 0 12px;font-family:var(--display);font-weight:700;font-size:20px;' }));
-    cfg.times.forEach(t => list.append(h('div', { class: 'lrow' },
+    const dt = dayTimes(selDay);
+    if (!dt.length) list.append(h('div', { class: 'lnote', text: 'Closed all day. Change this in Setting > Opening hours.' }));
+    dt.forEach(t => list.append(h('div', { class: 'lrow' },
       h('div', { class: 'tl', text: t }), cell(selDay, t, byKey.get(selDay + ' ' + t)))));
   }
 }
@@ -591,6 +664,7 @@ function render() {
 function cell(d, t, r) {
   const past = (d + ' ' + t) <= cfg.now;
   const c = h('div', { class: 'cell' + (past ? ' past' : '') });
+  if (!r && !timesOn(d).includes(t)) { c.append(h('div', { class: 'offcell', text: '–' })); return c; }   // outside this weekday's opening hours
   if (!r && closed.has(d + ' ' + t)) {
     c.append(h('div', { class: 'card Closed' },
       h('div', { class: 'nm none', text: 'Closed' }),
@@ -600,6 +674,7 @@ function cell(d, t, r) {
   if (!r) {
     c.append(h('button', { class: 'empty', type: 'button', text: 'Click to Block', disabled: past,
       onclick: () => act({ action: 'disable', date: d, time: t }, 'Slot blocked.') }));
+    if (!past) { c.dataset.drop = '1'; c.dataset.date = d; c.dataset.time = t; }   // a card can be dropped here
     return c;
   }
   const named = !!r.name;
@@ -628,9 +703,14 @@ function cell(d, t, r) {
     r.phone ? h('a', { href: waLink(r.phone), target: '_blank', rel: 'noopener', text: 'WhatsApp' }) : null,
     h('span', { class: 'badge', text: r.status }),
     nsBadge(r));
-  c.append(h('div', { class: 'card ' + r.status },
+  const card = h('div', { class: 'card ' + r.status },
     h('div', { class: 'nm', text: r.name }),
-    meta, acts));
+    meta, acts);
+  if (!past && !r.tmp && (r.status === 'Pending' || r.status === 'Approved')) {
+    card.classList.add('dragable'); card.dataset.id = r.id;
+    if (drag && drag.active && drag.id === r.id) card.classList.add('lifted');
+  }
+  c.append(card);
   return c;
 }
 
@@ -674,6 +754,9 @@ async function loadSettings() {
     const r = await api({ action: 'settings_get' });
     if (!r.ok) throw new Error(r.error);
     S = { enabled: r.carouselEnabled, footer: r.footer, images: r.images, max: r.max || 10 };
+    if (r.schedule) { SCH = r.schedule; SLOTS = r.slotChoices || SLOTS; if (!hoursDirty) renderHours(); }
+    if (r.notify) { N = r.notify; renderNotify(); }
+    if (r.archive) { A = r.archive; renderArchive(); }
     R = r.rules || [];
     if (document.activeElement !== $('#fText')) $('#fText').value = S.footer;
     settingsLoaded = true;
@@ -864,7 +947,6 @@ function nsBadge(r) {
 }
 function fillTimeOptions() {
   const opt = (v, t) => h('option', { value: v, text: t });
-  $('#aTime').replaceChildren(...cfg.times.map(t => opt(t, t)));
   $('#rStart').replaceChildren(opt('', 'All day'), ...cfg.times.map(t => opt(t, t)));
   $('#rEnd').replaceChildren(...cfg.times.map(t => { const e = endTime(t, cfg.slotMinutes); return opt(e, e); }));
   syncRuleTime();
@@ -923,17 +1005,25 @@ function openAdd() {
   const d = selDay || cfg.today;
   const busy = new Set(rows.filter(r => r.date === d).map(r => r.time));
   $('#aDate').value = d;
-  $('#aTime').value = cfg.times.find(t => !busy.has(t) && !closed.has(d + ' ' + t) && (d + ' ' + t) > cfg.now) || cfg.times[0];
+  fillAddTimes(d);
+  const tt = timesOn(d);
+  $('#aTime').value = tt.find(t => !busy.has(t) && !closed.has(d + ' ' + t) && (d + ' ' + t) > cfg.now) || tt[0] || '';
   $('#aName').value = ''; $('#aPhone').value = ''; $('#aErr').textContent = '';
   addDlg.showModal();
   if (matchMedia('(hover:hover)').matches) $('#aName').focus();
 }
+function fillAddTimes(d) {
+  const tt = timesOn(d), sel = $('#aTime');
+  sel.replaceChildren(...(tt.length ? tt.map(t => h('option', { value: t, text: t })) : [h('option', { value: '', text: 'Closed that day' })]));
+}
+$('#aDate').addEventListener('change', () => { const keep = $('#aTime').value; fillAddTimes($('#aDate').value); if (timesOn($('#aDate').value).includes(keep)) $('#aTime').value = keep; });
 $('#aCancel').onclick = () => addDlg.close();
 addDlg.addEventListener('click', e => { if (e.target === addDlg) addDlg.close(); });
 $('#addForm').addEventListener('submit', async e => {
   e.preventDefault();
   const date = $('#aDate').value, time = $('#aTime').value, name = $('#aName').value.trim(), phoneRaw = $('#aPhone').value.trim();
   const bad = !/^\d{4}-\d{2}-\d{2}$/.test(date) ? 'Pick a date.'
+    : !time ? 'Closed that day. Change it in Setting > Opening hours.'
     : name.length < 2 ? 'Enter a name.'
     : !/^[0-9+\-\s()]{7,20}$/.test(phoneRaw) ? 'Enter a valid phone number.' : '';
   $('#aErr').textContent = bad;
@@ -1002,6 +1092,221 @@ $('#ruleForm').addEventListener('submit', async e => {
   finally { btn.disabled = false; }
 });
 
+/* ---- opening hours helpers (same rules as the booking page and the server) ---- */
+function toMin(t) { const [a, b] = t.split(':').map(Number); return a * 60 + b; }
+function wday(ymd) { const [y, m, d] = parts(ymd); return new Date(Date.UTC(y, m - 1, d)).getUTCDay(); }
+function timesOn(ymd) {
+  const x = cfg.hours && cfg.hours[wday(ymd)];
+  if (!x) return cfg.times;
+  if (!x.open) return [];
+  const out = [];
+  for (let m = toMin(x.start); m + cfg.slotMinutes <= toMin(x.end); m += cfg.slotMinutes)
+    out.push(String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'));
+  return out;
+}
+// open times plus any booking that sits outside them (hours were changed later): nothing ever disappears from the calendar
+function dayTimes(d) { const set = new Set(timesOn(d)); rows.forEach(r => { if (r.date === d) set.add(r.time); }); return [...set].sort(); }
+function weekTimes(days) { return [...new Set(days.flatMap(dayTimes))].sort(); }
+
+/* ---- Setting: opening hours ---- */
+const ORDER = [1, 2, 3, 4, 5, 6, 0], HR = {};
+let SCH = null, SLOTS = [10, 15, 20, 30, 45, 60, 90, 120], hoursDirty = false;
+const hhmm = t => t === '24:00' ? '23:59' : t;
+function renderHours() {
+  const sel = $('#hSlot');
+  sel.replaceChildren(...SLOTS.map(m => h('option', { value: m, text: m + ' min' })));
+  sel.value = SCH.slotMinutes; $('#hDays').value = SCH.daysAhead;
+  const box = $('#hRows'); box.replaceChildren();
+  ORDER.forEach(d => {
+    const x = SCH.hours[d];
+    const sw = h('input', { type: 'checkbox', class: 'sw', checked: !!x.open });
+    sw.setAttribute('aria-label', WEEKDAYS[d] + ' open');
+    const from = h('input', { type: 'time', class: 'fld tm', value: hhmm(x.start), step: 300 });
+    const to = h('input', { type: 'time', class: 'fld tm', value: hhmm(x.end), step: 300 });
+    from.setAttribute('aria-label', WEEKDAYS[d] + ' opens'); to.setAttribute('aria-label', WEEKDAYS[d] + ' closes');
+    const times = h('div', { class: 'htimes', hidden: !x.open }, from, h('span', { text: 'to' }), to);
+    sw.onchange = () => { times.hidden = !sw.checked; hoursDirty = true; };
+    from.oninput = to.oninput = () => { hoursDirty = true; };
+    HR[d] = { sw, from, to, times };
+    box.append(h('div', { class: 'hrow' }, h('div', { class: 'hhead' }, h('span', { text: WEEKDAYS[d] }), sw), times));
+  });
+}
+$('#hSlot').onchange = $('#hDays').oninput = () => { hoursDirty = true; };
+$('#hCopy').onclick = () => {
+  const m = HR[1]; if (!m) return;
+  ORDER.forEach(d => { const r = HR[d]; r.sw.checked = m.sw.checked; r.from.value = m.from.value; r.to.value = m.to.value; r.times.hidden = !r.sw.checked; });
+  hoursDirty = true;
+};
+$('#hSave').onclick = async () => {
+  const btn = $('#hSave'); btn.disabled = true;
+  try {
+    const hours = {};
+    ORDER.forEach(d => { const r = HR[d]; hours[d] = { open: r.sw.checked, start: r.from.value || '09:00', end: r.to.value || '17:00' }; });
+    const sch = { slotMinutes: +$('#hSlot').value, daysAhead: +$('#hDays').value, hours };
+    const r = await api({ action: 'schedule_set', schedule: sch });
+    if (!r.ok) throw new Error(r.error);
+    SCH = sch; hoursDirty = false;
+    cfg = { ...cfg, ...r.config }; timeKey = JSON.stringify([cfg.times, cfg.slotMinutes]); fillTimeOptions();
+    rulesDirty = true; lastSig = '';
+    toast('Opening hours saved.');
+  } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
+  finally { btn.disabled = false; }
+};
+
+/* ---- Setting: new booking alerts ---- */
+let N = { on: false, topic: '', email: '', url: '' }, nDirty = false;
+function updNotifyHint() {
+  const t = $('#nTopic').value.trim();
+  $('#nHint').textContent = t
+    ? 'Install the free ntfy app (iPhone or Android), tap +, and subscribe to the topic "' + t + '". Keep the topic secret: anyone who knows it can read the alerts.'
+    : 'Pick a topic name (or tap Generate), then subscribe to it in the free ntfy app. Keep it secret.';
+}
+function renderNotify() {
+  if (nDirty) return;
+  $('#nOn').checked = !!N.on; $('#nTopic').value = N.topic || ''; $('#nEmail').value = N.email || ''; $('#nUrl').value = N.url || '';
+  updNotifyHint();
+}
+['#nOn', '#nTopic', '#nEmail', '#nUrl'].forEach(id => $(id).addEventListener('input', () => { nDirty = true; updNotifyHint(); }));
+$('#nGen').onclick = () => {
+  const a = new Uint8Array(12); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach((_, i) => { a[i] = Math.random() * 256; });
+  $('#nTopic').value = 'hbs-' + Array.from(a, b => b.toString(36).padStart(2, '0')).join('').slice(0, 20);
+  nDirty = true; updNotifyHint();
+};
+async function saveNotify() {
+  const url = $('#nUrl').value.trim() || (location.protocol.startsWith('http') ? location.href.split('#')[0] : '');
+  const r = await api({ action: 'notify_set', on: $('#nOn').checked, topic: $('#nTopic').value.trim(), email: $('#nEmail').value.trim(), url });
+  if (!r.ok) throw new Error(r.error);
+  N = { on: $('#nOn').checked, topic: $('#nTopic').value.trim(), email: $('#nEmail').value.trim(), url }; nDirty = false;
+}
+$('#nSave').onclick = async () => {
+  const b = $('#nSave'); b.disabled = true;
+  try { await saveNotify(); toast('Alert settings saved.'); } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
+  finally { b.disabled = false; }
+};
+$('#nTest').onclick = async () => {
+  const b = $('#nTest'); b.disabled = true;
+  try { await saveNotify(); const r = await api({ action: 'notify_test' }); if (!r.ok) throw new Error(r.error); toast('Test sent. Check your phone.'); }
+  catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error', 5000); }
+  finally { b.disabled = false; }
+};
+
+/* ---- in-page alert for a booking that arrives while this page is open ---- */
+const seen = new Map();
+function detectNew() {
+  const prev = seen.get(weekStart);
+  if (prev) {
+    const fresh = rows.filter(r => r.name && r.status === 'Pending' && !r.tmp && !prev.has(r.id));
+    if (fresh.length) {
+      const r = fresh[0];
+      toast(fresh.length > 1 ? fresh.length + ' new bookings' : 'New booking: ' + r.name + ' · ' + dow(r.date) + ' ' + md(r.date) + ', ' + r.time, 6000);
+    }
+  }
+  seen.set(weekStart, new Set(rows.map(r => r.id)));
+}
+
+/* ---- Setting: password + archive ---- */
+$('#pwForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const cur = $('#pwCur').value, n1 = $('#pwNew').value, n2 = $('#pwNew2').value, btn = $('#pwSave');
+  if (!cur) return toast('Enter your current password.');
+  if (n1.length < 8) return toast('New password must be at least 8 characters.');
+  if (n1 !== n2) return toast('The new passwords do not match.');
+  btn.disabled = true;
+  try {
+    const r = await api({ action: 'password_change', current: cur, next: n1 });
+    if (!r.ok) throw new Error(r.error);
+    token = r.token; sessionStorage.setItem('adminTok', token);
+    $('#pwCur').value = $('#pwNew').value = $('#pwNew2').value = '';
+    toast('Password changed. Other devices are signed out.', 5000);
+  } catch (err) { if (/session/i.test(err.message || '')) logout(); else toast(err.message || 'Error'); }
+  finally { btn.disabled = false; }
+});
+let A = null;
+function renderArchive() {
+  $('#mNote').textContent = A.rows + ' rows in the booking sheet, ' + A.archived + ' archived. Appointments older than ' + A.days + ' days move to the Archive tab (no-shows stay so the counter keeps working).';
+}
+$('#mRun').onclick = async () => {
+  const b = $('#mRun'); b.disabled = true;
+  try {
+    const r = await api({ action: 'archive_run' });
+    if (!r.ok) throw new Error(r.error);
+    toast(r.moved ? 'Archived ' + r.moved + ' rows.' : 'Nothing to archive yet.');
+    loadSettings();
+  } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
+  finally { b.disabled = false; }
+};
+
+/* ---- drag a card to another slot ---- mouse: drag; touch: press and hold, then drag. Drop on an empty slot; hover a day tab to switch day. */
+let drag = null;
+function startDrag() {
+  if (!drag || drag.active) return;
+  drag.active = true;
+  const rect = drag.card.getBoundingClientRect();
+  drag.dx = drag.x0 - rect.left; drag.dy = drag.y0 - rect.top;
+  const g = drag.card.cloneNode(true);
+  g.classList.add('ghostcard'); g.classList.remove('lifted'); g.style.width = rect.width + 'px';
+  document.body.append(g); drag.ghost = g;
+  drag.card.classList.add('lifted'); document.body.classList.add('dragging');
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (e) {}
+  moveGhost(); dragTick();
+}
+function moveGhost() { drag.ghost.style.transform = 'translate(' + (drag.x - drag.dx) + 'px,' + (drag.y - drag.dy) + 'px) scale(1.03) rotate(1.2deg)'; }
+function dragTick() {
+  if (!drag || !drag.active) return;
+  const { x, y } = drag;
+  let dy = 0; if (y < 90) dy = -Math.ceil((90 - y) / 5); else if (y > innerHeight - 90) dy = Math.ceil((y - (innerHeight - 90)) / 5);
+  if (dy) scrollBy(0, Math.max(-24, Math.min(24, dy)));
+  const mn = $('#apptMain');
+  if (mn.scrollWidth > mn.clientWidth + 2) { if (x < 70) mn.scrollLeft -= 14; else if (x > innerWidth - 70) mn.scrollLeft += 14; }
+  const el = document.elementFromPoint(x, y);
+  const cell = el && el.closest ? el.closest('.cell[data-drop]') : null;
+  if (cell !== drag.target) { if (drag.target) drag.target.classList.remove('dropok'); drag.target = cell; if (cell) cell.classList.add('dropok'); }
+  const tab = el && el.closest ? el.closest('.tab') : null, td = tab ? tab.dataset.d : null;
+  if (td !== drag.tabD) {
+    drag.tabD = td; clearTimeout(drag.tabT);
+    if (td && td !== selDay) drag.tabT = setTimeout(() => { if (drag && drag.tabD === td) { selDay = td; drag.target = null; render(); centerTab(); } }, 450);
+  }
+  drag.raf = requestAnimationFrame(dragTick);
+}
+function finishDrag(drop) {
+  if (!drag) return;
+  const d = drag; drag = null;
+  clearTimeout(d.timer); clearTimeout(d.tabT); cancelAnimationFrame(d.raf);
+  if (d.ghost) d.ghost.remove();
+  document.body.classList.remove('dragging');
+  if (d.card) d.card.classList.remove('lifted');
+  if (d.target) d.target.classList.remove('dropok');
+  if (drop && d.active && d.target) {
+    const date = d.target.dataset.date, time = d.target.dataset.time;
+    if (!(d.row.date === date && d.row.time === time))
+      act({ action: 'admin_move', id: d.id, date, time }, 'Moved to ' + dow(date) + ' ' + md(date) + ', ' + time + '.');
+  }
+}
+document.addEventListener('pointerdown', e => {
+  if (drag || e.button > 0 || !e.target.closest) return;
+  const card = e.target.closest('.card.dragable');
+  if (!card || e.target.closest('button,a')) return;
+  const row = rows.find(r => r.id === card.dataset.id); if (!row) return;
+  const touch = e.pointerType === 'touch' || e.pointerType === 'pen';
+  drag = { id: row.id, row, card, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, pid: e.pointerId, touch, active: false };
+  if (touch) drag.timer = setTimeout(startDrag, 320);       // press and hold
+});
+document.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.pid) return;
+  drag.x = e.clientX; drag.y = e.clientY;
+  if (!drag.active) {
+    const moved = Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0);
+    if (drag.touch) { if (moved > 9) finishDrag(false); }    // the finger moved first: the user is scrolling
+    else if (moved > 6) startDrag();
+    return;
+  }
+  moveGhost();
+});
+document.addEventListener('pointerup', e => { if (drag && e.pointerId === drag.pid) finishDrag(true); });
+document.addEventListener('pointercancel', e => { if (drag && e.pointerId === drag.pid) finishDrag(false); });
+document.addEventListener('touchmove', e => { if (drag && drag.active) e.preventDefault(); }, { passive: false });   // no page scroll while carrying a card
+document.addEventListener('contextmenu', e => { if (drag) e.preventDefault(); });
+
 /* ---- confirm dialog ---- */
 const cfm = $('#cfm');
 let onYes = null;
@@ -1025,6 +1330,9 @@ function applyLocal(p) {
       if (was === 'No-show' && p.status !== 'No-show') n--;
       rows[i] = { ...rows[i], status: p.status, noShows: n };
     }
+  } else if (p.action === 'admin_move') {
+    const i = rows.findIndex(r => r.id === p.id); if (i < 0) return;
+    if (inWeek(p.date)) rows[i] = { ...rows[i], date: p.date, time: p.time }; else rows.splice(i, 1);
   }
 }
 function act(payload, okMsg) {
@@ -1084,7 +1392,7 @@ if (!API_URL || API_URL.startsWith('PASTE')) {
     load().then(showApp).catch(() => { sessionStorage.removeItem('adminTok'); token = ''; });
   }
 }
-const idleOk = () => !$('#app').hidden && !document.body.classList.contains('busy') && !cfm.open && !rec.open && !srch.open && !addDlg.open && !pendingOps && !document.hidden && location.hash !== '#setting';
+const idleOk = () => !$('#app').hidden && !document.body.classList.contains('busy') && !cfm.open && !rec.open && !srch.open && !addDlg.open && !drag && !pendingOps && !document.hidden && location.hash !== '#setting';
 setInterval(() => { if (idleOk()) safeLoad(); }, 30000);
 document.addEventListener('visibilitychange', () => { if (idleOk()) safeLoad(); });   // back to the app: refresh at once
 </script>
