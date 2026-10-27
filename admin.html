@@ -348,6 +348,7 @@
   .pcard { cursor:pointer; transition:transform .5s var(--spring); }
   .pcard:active { transform:scale(.98); transition-duration:.1s; }
   .pcard .when { font-size:12.5px; font-weight:600; color:#b36200; margin-bottom:2px; font-variant-numeric:tabular-nums; }
+  textarea.fld { resize:vertical; min-height:110px; line-height:1.4; font-family:inherit; display:block; }
   .card.cont { background:rgba(0,122,255,.06); box-shadow:inset 4px 0 0 rgba(0,122,255,.35); }
   .card.cont .nm { color:var(--muted); font-weight:600; }
   body.dragging, body.dragging * { cursor:grabbing !important; -webkit-user-select:none; user-select:none; }
@@ -456,6 +457,16 @@
       <div class="frow">
         <input id="fText" maxlength="200" placeholder="Hen's Bone Setting" autocomplete="off">
         <button type="button" class="btn primary" id="fSave">Save</button>
+      </div>
+    </section>
+    <section class="panel" id="waPanel">
+      <h2>WhatsApp message</h2>
+      <p class="hint2">Message that opens when you tap WhatsApp on a booking. You can edit it in WhatsApp before sending. Placeholders: <b>{name}</b> <b>{date}</b> <b>{time}</b> <b>{people}</b></p>
+      <textarea class="fld" id="wTpl" rows="5" maxlength="500" placeholder=""></textarea>
+      <p class="nhint" id="wPrev" style="margin-top:10px"></p>
+      <div class="hactions">
+        <button type="button" class="btn ghost" id="wReset">Use default</button>
+        <button type="button" class="btn primary" id="wSave">Save</button>
       </div>
     </section>
     <section class="panel" id="notifyPanel">
@@ -572,6 +583,15 @@ function localDate(ymd) { const [y, m, d] = parts(ymd); return new Date(y, m - 1
 function md(ymd) { return localDate(ymd).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
 function dow(ymd) { return localDate(ymd).toLocaleDateString('en-US', { weekday: 'short' }); }
 function longDate(ymd) { return localDate(ymd).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
+const WA_DEFAULT = "Halo {name}, ini Hen's Bone Setting. Kami ingin mengingatkan janji temu Anda pada {date}, pukul {time}. Mohon konfirmasi kehadiran Anda. Terima kasih.";
+function waFill(tpl, r) {
+  const when = (r && r.date) ? new Date(...parts(r.date).map((v, i) => i === 1 ? v - 1 : v)).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  const time = (r && r.time && cfg) ? r.time + ' - ' + endTime(r.time, cfg.slotMinutes * (r.slots || 1)) : (r && r.time) || '';
+  const vals = { name: (r && r.name) || '', date: when, time, people: (r && r.people) || 1 };
+  return (tpl || WA_DEFAULT).replace(/\{(name|date|time|people)\}/g, (_, k) => vals[k]);
+}
+// wa.me link for a booking, with the saved message template filled in
+function waMsg(r) { return waLink(r.phone) + '?text=' + encodeURIComponent(waFill(cfg && cfg.waTemplate, r)); }
 function waLink(phone) {
   let d = String(phone).replace(/\D/g, '');
   if (d.startsWith('00')) d = d.slice(2);
@@ -691,7 +711,7 @@ function renderPending() {
           () => act({ action: 'update', id: r.id, status: 'Cancelled' }, 'Slot available again.')); } }));
     const meta = h('div', { class: 'meta' },
       r.phone ? h('a', { href: 'tel:' + r.phone, text: r.phone, onclick: e => e.stopPropagation() }) : null,
-      r.phone ? h('a', { href: waLink(r.phone), target: '_blank', rel: 'noopener', text: 'WhatsApp', onclick: e => e.stopPropagation() }) : null,
+      r.phone ? h('a', { href: waMsg(r), target: '_blank', rel: 'noopener', text: 'WhatsApp', onclick: e => e.stopPropagation() }) : null,
       r.people > 1 ? h('span', { class: 'badge', text: r.people + ' people · ' + r.slots + ' slots' }) : null,
       nsBadge(r));
     return h('div', { class: 'card Pending pcard', onclick: () => { selDay = r.date; render(); (mq.matches ? $('#grid') : $('#tabs')).scrollIntoView({ behavior: 'smooth', block: 'start' }); } },
@@ -745,7 +765,7 @@ function cell(d, t, r) {
   }
   const meta = h('div', { class: 'meta' },
     r.phone ? h('a', { href: 'tel:' + r.phone, text: r.phone }) : null,
-    r.phone ? h('a', { href: waLink(r.phone), target: '_blank', rel: 'noopener', text: 'WhatsApp' }) : null,
+    r.phone ? h('a', { href: waMsg(r), target: '_blank', rel: 'noopener', text: 'WhatsApp' }) : null,
     h('span', { class: 'badge', text: r.status }),
     r.people > 1 ? h('span', { class: 'badge', text: r.people + ' people · ' + r.slots + ' slots' }) : null,
     nsBadge(r));
@@ -800,6 +820,7 @@ async function loadSettings() {
     const r = await api({ action: 'settings_get' });
     if (!r.ok) throw new Error(r.error);
     S = { enabled: r.carouselEnabled, footer: r.footer, images: r.images, max: r.max || 10 };
+    if (typeof r.waTemplate === 'string') { WT = r.waTemplate; if (cfg) cfg.waTemplate = WT; renderWa(); }
     if (r.schedule) { SCH = r.schedule; SLOTS = r.slotChoices || SLOTS; if (!hoursDirty) renderHours(); }
     if (r.notify) { N = r.notify; renderNotify(); }
     if (r.archive) { A = r.archive; renderArchive(); }
@@ -1199,6 +1220,29 @@ $('#hSave').onclick = async () => {
     toast('Opening hours saved.');
   } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
   finally { btn.disabled = false; }
+};
+
+/* ---- Setting: WhatsApp message template ---- */
+let WT = '', wDirty = false;
+const WA_SAMPLE = { name: 'Rina', date: '2026-11-03', time: '10:00', slots: 1, people: 1 };
+function renderWa() {
+  $('#wTpl').placeholder = WA_DEFAULT;
+  if (!wDirty && document.activeElement !== $('#wTpl')) $('#wTpl').value = WT;
+  updWaPreview();
+}
+function updWaPreview() { $('#wPrev').textContent = 'Preview: ' + waFill($('#wTpl').value.trim(), WA_SAMPLE); }
+$('#wTpl').addEventListener('input', () => { wDirty = true; updWaPreview(); });
+$('#wReset').onclick = () => { $('#wTpl').value = ''; wDirty = true; updWaPreview(); };
+$('#wSave').onclick = async () => {
+  const b = $('#wSave'); b.disabled = true;
+  try {
+    const v = $('#wTpl').value.trim();
+    const r = await api({ action: 'settings_set', waTemplate: v });
+    if (!r.ok) throw new Error(r.error);
+    WT = v; wDirty = false; if (cfg) cfg.waTemplate = v; $('#wTpl').value = v; lastSig = ''; rulesDirty = true;   // calendar re-renders with the new links
+    toast(v ? 'Message saved.' : 'Default message restored.');
+  } catch (e) { if (expired(e)) logout(); else toast(e.message || 'Error'); }
+  finally { b.disabled = false; }
 };
 
 /* ---- Setting: new booking alerts ---- */
