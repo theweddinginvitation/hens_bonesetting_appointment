@@ -231,6 +231,9 @@
   .slot.held small::before { background:transparent; border:1.5px solid currentColor; }
   .slot.mine { background:var(--blue-soft); box-shadow:none; color:var(--blue-deep); cursor:default; }
   .day.off { background:rgba(120,120,128,.1); } .day.off .dc { color:#9a9aa1; }
+  .hintp { margin:6px 0 0 4px; font-size:12.5px; color:var(--muted); }
+  .holdnote.warn { color:#d1322b; }
+  .dupbtns a.btn { display:flex; align-items:center; justify-content:center; text-decoration:none; line-height:1.2; }
   .btn.danger { background:#ff3b30; color:#fff; }
   .btn.danger:disabled { opacity:.6; }
   .toast { position:fixed; left:50%; bottom:calc(22px + env(safe-area-inset-bottom,0px)); z-index:60; max-width:calc(100% - 32px); padding:12px 18px; border-radius:16px; background:rgba(29,29,31,.94); color:#fff; font-size:15px; font-weight:600; opacity:0; transform:translate(-50%,16px); pointer-events:none; transition:opacity .3s var(--ease), transform .5s var(--spring); }
@@ -349,6 +352,12 @@
         <input id="phone" name="phone" type="tel" inputmode="tel" enterkeyhint="done" autocomplete="tel" maxlength="20" placeholder="+62 812 3456 7890" required>
         <p class="err" id="phoneErr"></p>
       </div>
+      <div class="field">
+        <label for="people">Jumlah Orang</label>
+        <input id="people" name="people" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off" enterkeyhint="done" value="1" required>
+        <p class="hintp" id="peopleHint"></p>
+        <p class="err" id="peopleErr"></p>
+      </div>
       <button type="submit" class="btn primary" id="save">Simpan</button>
     </form>
   </div>
@@ -379,6 +388,17 @@
   </div>
 </dialog>
 
+<dialog id="nxt" aria-labelledby="nxtTitle">
+  <div class="dupbox">
+    <h2 id="nxtTitle">Tidak bisa memesan</h2>
+    <p id="nxtMsg">Slot selanjutnya penuh, pilih waktu lain atau hubungi kami</p>
+    <div class="dupbtns">
+      <button type="button" class="btn ghost" id="nxtOther">Pilih waktu lain</button>
+      <a class="btn primary" id="nxtWa" href="https://wa.me/6282178570909" target="_blank" rel="noopener">Hubungi Kami</a>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="cxl" aria-labelledby="cxlTitle">
   <div class="dupbox">
     <h2 id="cxlTitle">Batalkan janji temu?</h2>
@@ -396,11 +416,12 @@
 <script src="config.js"></script>
 <script>
 const $ = s => document.querySelector(s);
-const dlg = $('#dlg'), dup = $('#dup'), cxl = $('#cxl'), lb = $('#lb'), lbTrack = $('#lbTrack');
+const dlg = $('#dlg'), dup = $('#dup'), cxl = $('#cxl'), nxt = $('#nxt'), lb = $('#lb'), lbTrack = $('#lbTrack');
 const LOCALE = 'id-ID';
 const tmo = ms => (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(ms) : undefined;   // GET requests give up after 15 s
 const canHover = matchMedia('(hover:hover)').matches;     // phones: no auto-focus, so the keyboard does not fight the dialog
 let cfg = null, taken = new Set(), held = new Set(), selDate = null, picked = null, loadedAt = 0;
+let blocks = [], allowMemo = new Map(), myHoldK = 1;
 let myHold = null, moveMode = false, mineStatus = '', mineChecked = false;
 let hid = ''; try { hid = sessionStorage.getItem('hbs_hid') || ''; } catch (e) {}
 if (!hid) { hid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now(); try { sessionStorage.setItem('hbs_hid', hid); } catch (e) {} }
@@ -437,12 +458,59 @@ function timesOn(ymd) {
   for (let m = toMin(h.start); m + cfg.slotMinutes <= toMin(h.end); m += cfg.slotMinutes) out.push(pad2(Math.floor(m / 60)) + ':' + pad2(m % 60));
   return out;
 }
+// ---- people and multi-slot bookings ----
+const perSlot = () => (cfg && cfg.perSlot) || 2, maxPeople = () => (cfg && cfg.maxPeople) || 10;
+function slotsFor(n) { return Math.max(1, Math.ceil(n / perSlot())); }
+function blockEnd(t, slots) { return endTime(t, cfg.slotMinutes * slots); }
+function blockRange(t, slots) { return t + ' - ' + blockEnd(t, slots); }
+function covers(d0, t0, k, d, t) { return d === d0 && t >= t0 && t < blockEnd(t0, k); }   // "HH:MM" strings compare correctly
+function mineSlots(m) { return slotsFor(m.people || 1); }
+function ownHeld(date, t) { if (!myHold) return false; const [d0, t0] = myHold.split(' '); return covers(d0, t0, myHoldK, date, t); }
+// Cluster rule: on a day that already has bookings, only the slot right before or after a booking can be picked.
+// null = no limit. My own booking is ignored, so I can move it freely.
+function allowedSet(date) {
+  if (allowMemo.has(date)) return allowMemo.get(date);
+  const times = timesOn(date), m = getMine();
+  const list = blocks.filter(b => b.date === date && !(m && m.date === b.date && m.time === b.time));
+  let res = null;
+  if (list.length) {
+    const al = new Set(); let any = false;
+    list.forEach(b => {
+      const i = times.indexOf(b.time); if (i < 0) return;
+      any = true;
+      if (i > 0) al.add(times[i - 1]);
+      if (i + b.slots < times.length) al.add(times[i + b.slots]);
+    });
+    if (any) res = al;
+  }
+  allowMemo.set(date, res);
+  return res;
+}
+// real availability of a slot (ignores the cluster rule): used for the slots after the first one
+function slotOpen(date, t) {
+  const k = date + ' ' + t;
+  if (taken.has(k) || k <= cfg.now) return false;
+  return !(held.has(k) && !ownHeld(date, t));
+}
+// can k consecutive slots starting at t be used? `old` = the booking being moved (its own slots count as free)
+function nextOk(date, t, k, old) {
+  const times = timesOn(date);
+  for (let i = 1; i < k; i++) {
+    const tt = endTime(t, cfg.slotMinutes * i);
+    if (!times.includes(tt)) return false;
+    if (old && covers(old.date, old.time, mineSlots(old), date, tt)) continue;
+    if (!slotOpen(date, tt)) return false;
+  }
+  return true;
+}
 // 'free' | 'taken' | 'held' (someone else is filling the form) | 'mine'
 function slotState(date, t) {
   const k = date + ' ' + t, m = getMine();
-  if (m && m.date + ' ' + m.time === k) return 'mine';
+  if (m && covers(m.date, m.time, mineSlots(m), date, t)) return 'mine';
   if (taken.has(k) || k <= cfg.now) return 'taken';
-  if (held.has(k) && myHold !== k) return 'held';
+  const al = allowedSet(date);
+  if (al && !al.has(t)) return 'taken';
+  if (held.has(k) && !ownHeld(date, t)) return 'held';
   return 'free';
 }
 function isFree(date, t) { return slotState(date, t) === 'free'; }
@@ -457,8 +525,8 @@ function addressUrl() {
 const STORE = 'hbs_booking';
 let mineB = null;
 try { mineB = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (e) {}
-function saveMine(b) { mineB = b; mineStatus = ''; try { localStorage.setItem(STORE, JSON.stringify(b)); } catch (e) {} }
-function clearMine() { mineB = null; mineStatus = ''; try { localStorage.removeItem(STORE); } catch (e) {} }
+function saveMine(b) { mineB = b; mineStatus = ''; allowMemo = new Map(); try { localStorage.setItem(STORE, JSON.stringify(b)); } catch (e) {} }
+function clearMine() { mineB = null; mineStatus = ''; allowMemo = new Map(); try { localStorage.removeItem(STORE); } catch (e) {} }
 function getMine() {
   const b = mineB;
   return b && b.date && b.time && cfg && (b.date + ' ' + b.time) > cfg.now ? b : null;
@@ -467,7 +535,7 @@ let pending = null;
 function askChange(date, time) {
   const m = getMine();
   pending = { date, time, old: m };
-  $('#dupMsg').textContent = 'Anda sudah memiliki janji temu pada ' + fullDate(m.date) + ', pukul ' + range(m.time) + '. Ingin mengubah waktu janji temu?';
+  $('#dupMsg').textContent = 'Anda sudah memiliki janji temu pada ' + fullDate(m.date) + ', pukul ' + blockRange(m.time, mineSlots(m)) + '. Ingin mengubah waktu janji temu?';
   dup.showModal();
 }
 function closeDup() { if (dup.open) dup.close(); }
@@ -501,6 +569,7 @@ async function load() {
     cfg = d.config;
     taken = new Set(d.taken.map(t => t.date + ' ' + t.time));
     held = new Set((d.held || []).map(t => t.date + ' ' + t.time));
+    blocks = d.blocks || []; allowMemo = new Map();
     loadedAt = Date.now();
     if (!selDate || selDate < cfg.today) selDate = cfg.today;
     render();
@@ -587,16 +656,28 @@ function render() {
 /* ---- booking dialog ---- */
 function setErr(id, msg) {
   $('#' + id).textContent = msg || '';
-  const input = { nameErr: '#name', phoneErr: '#phone' }[id];
+  const input = { nameErr: '#name', phoneErr: '#phone', peopleErr: '#people' }[id];
   if (input) $(input).setAttribute('aria-invalid', msg ? 'true' : 'false');
+}
+function getPeople() {
+  const v = $('#people').value.trim();
+  if (!/^\d{1,2}$/.test(v)) return 0;
+  const n = +v;
+  return n >= 1 && n <= maxPeople() ? n : 0;
+}
+function updatePeopleUI() {
+  const n = getPeople() || 1, k = slotsFor(n);
+  if (picked) $('#dTitle').textContent = blockRange(picked.time, k);
+  $('#peopleHint').textContent = 'Maksimal ' + perSlot() + ' orang per slot.' + (k > 1 ? ' ' + n + ' orang memakai ' + k + ' slot berurutan.' : '');
 }
 function openDialog(date, time, old) {
   picked = { date, time, old: old || null };
   $('#dWhen').textContent = fullDate(date);
-  $('#dTitle').textContent = range(time);
   $('#form').reset();
   if (old && old.name) { $('#name').value = old.name; $('#phone').value = old.phone || ''; }
-  ['nameErr', 'phoneErr', 'formErr'].forEach(i => setErr(i, ''));
+  $('#people').value = old && old.people ? old.people : 1;
+  updatePeopleUI();
+  ['nameErr', 'phoneErr', 'peopleErr', 'formErr'].forEach(i => setErr(i, ''));
   $('#formView').hidden = false; $('#doneView').hidden = true;
   $('#save').disabled = false; $('#save').textContent = 'Simpan';
   dlg.showModal();
@@ -609,6 +690,18 @@ dlg.addEventListener('click', e => { if (e.target === dlg) closeDialog(); }); //
 $('#close').onclick = closeDialog;
 $('#done').onclick = closeDialog;
 
+$('#people').addEventListener('input', () => {
+  const el = $('#people'), v = el.value.replace(/\D/g, '').slice(0, 2);
+  if (v !== el.value) el.value = v;
+  setErr('peopleErr', '');
+  updatePeopleUI();
+  clearTimeout(holdDeb);
+  holdDeb = setTimeout(() => { if (picked && myHold && (slotsFor(getPeople() || 1) !== myHoldK || nextFull)) holdNow(false); }, 400);
+});
+function showNextFull() { if (!nxt.open) nxt.showModal(); }
+$('#nxtOther').onclick = () => { nxt.close(); closeDialog(); };
+nxt.addEventListener('click', e => { if (e.target === nxt) nxt.close(); });
+
 $('#form').addEventListener('submit', async e => {
   e.preventDefault();
   if (!picked) return;
@@ -616,24 +709,28 @@ $('#form').addEventListener('submit', async e => {
   setErr('formErr', '');
   const nameBad = name.length < 2 ? 'Masukkan nama Anda.' : '';
   const phoneBad = /^[0-9+\-\s()]{7,20}$/.test(phoneRaw) ? '' : 'Masukkan nomor telepon yang valid, contoh +62 812 3456 7890.';
-  setErr('nameErr', nameBad); setErr('phoneErr', phoneBad);
+  const n = getPeople(), peopleBad = n ? '' : 'Masukkan jumlah orang (1-' + maxPeople() + ').';
+  setErr('nameErr', nameBad); setErr('phoneErr', phoneBad); setErr('peopleErr', peopleBad);
   if (nameBad) return $('#name').focus();
   if (phoneBad) return $('#phone').focus();
-  const phone = normPhone(phoneRaw);
+  if (peopleBad) return $('#people').focus();
+  const phone = normPhone(phoneRaw), k = slotsFor(n);
+  if (!nextOk(picked.date, picked.time, k, picked.old)) { showNextFull(); return; }
 
   const save = $('#save'); save.disabled = true; save.textContent = 'Menyimpan…';
   try {
-    const r = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(picked.old
-        ? { action: 'reschedule', oldDate: picked.old.date, oldTime: picked.old.time, date: picked.date, time: picked.time, name, phone, hid }
-        : { action: 'book', date: picked.date, time: picked.time, name, phone, hid })
-    });
-    const d = await r.json();
+    const d = await post(picked.old
+      ? { action: 'reschedule', oldDate: picked.old.date, oldTime: picked.old.time, date: picked.date, time: picked.time, name, phone, people: n, hid }
+      : { action: 'book', date: picked.date, time: picked.time, name, phone, people: n, hid });
     if (!d.ok) {
+      if (d.code === 'next_full') {
+        save.disabled = false; save.textContent = 'Simpan';
+        await load();
+        showNextFull();
+        return;
+      }
       if (/duplicate|already|exist/i.test(d.error || '') && d.existing && !picked.old) {
-        saveMine({ date: d.existing.date, time: d.existing.time, name, phone });
+        saveMine({ date: d.existing.date, time: d.existing.time, name, phone, people: d.existing.people || 1 });
         const t = picked;
         await load();
         closeDialog();
@@ -648,13 +745,13 @@ $('#form').addEventListener('submit', async e => {
       return;
     }
     endHold(false); setMove(false);
-    saveMine({ date: picked.date, time: picked.time, name, phone });
+    saveMine({ date: picked.date, time: picked.time, name, phone, people: n });
     mineStatus = 'Pending';
     $('#doneDate').textContent = fullDate(picked.date);
-    $('#doneTime').textContent = 'Pukul: ' + range(picked.time);
+    $('#doneTime').textContent = 'Pukul: ' + blockRange(picked.time, k) + (n > 1 ? ' · ' + n + ' orang' : '');
     $('#addr').href = addressUrl();
-    const mine = { date: picked.date, time: picked.time };
-    $('#ics').onclick = () => downloadIcs(mine.date, mine.time);
+    const mine = { date: picked.date, time: picked.time, k };
+    $('#ics').onclick = () => downloadIcs(mine.date, mine.time, mine.k);
     $('#formView').hidden = true; $('#doneView').hidden = false;
     $('#done').focus();
     load().then(renderMine);
@@ -668,11 +765,13 @@ $('#form').addEventListener('submit', async e => {
 function post(body, keep) {
   return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), keepalive: !!keep }).then(r => r.json());
 }
-let holdTimer = 0;
+let holdTimer = 0, holdDeb = 0, nextFull = false;
 function setHoldNote(kind) {
   const n = $('#holdNote');
-  n.hidden = !kind; n.className = 'holdnote' + (kind === 'ok' ? ' ok' : '');
-  n.textContent = kind === 'ok' ? 'Jam ini ditahan untuk Anda selama Anda mengisi.' : kind === 'wait' ? 'Menahan jam untuk Anda…' : '';
+  n.hidden = !kind; n.className = 'holdnote' + (kind === 'ok' ? ' ok' : kind === 'next' ? ' warn' : '');
+  n.textContent = kind === 'ok' ? 'Jam ini ditahan untuk Anda selama Anda mengisi.'
+    : kind === 'wait' ? 'Menahan jam untuk Anda…'
+    : kind === 'next' ? 'Slot selanjutnya penuh. Kurangi jumlah orang atau pilih waktu lain.' : '';
 }
 function holdFailed(p, err) {
   endHold(false);
@@ -681,22 +780,29 @@ function holdFailed(p, err) {
   $('#save').disabled = true;
   setTimeout(() => { if (picked === p) closeDialog(); }, 2600);
 }
+// reserve the chosen slot(s) for this visitor; also called again when the number of people changes and every 45 s
+async function holdNow(first) {
+  const p = picked; if (!p) return;
+  const key = p.date + ' ' + p.time, n = getPeople() || 1, k = slotsFor(n);
+  try {
+    const r = await post({ action: 'hold', hid, date: p.date, time: p.time, people: n,
+      oldDate: p.old && p.old.date, oldTime: p.old && p.old.time, phone: p.old && p.old.phone });
+    if (picked !== p || myHold !== key) return;
+    if (r.ok) { myHoldK = k; nextFull = false; setHoldNote('ok'); lastSig = null; render(); }
+    else if (r.code === 'next_full') { nextFull = true; setHoldNote('next'); }
+    else holdFailed(p, r.error);
+  } catch (e) { if (first && picked === p && myHold === key) setHoldNote(''); }
+}
 function startHold(date, time) {
   endHold(false);
-  const key = date + ' ' + time, p = picked;
-  myHold = key; setHoldNote('wait');
-  const attempt = async first => {
-    try {
-      const r = await post({ action: 'hold', hid, date, time });
-      if (picked !== p || myHold !== key) return;
-      if (r.ok) setHoldNote('ok'); else holdFailed(p, r.error);
-    } catch (e) { if (first && picked === p) setHoldNote(''); }
-  };
-  attempt(true);
-  holdTimer = setInterval(() => attempt(false), 45000);   // the server keeps a hold for 120 s
+  myHold = date + ' ' + time; myHoldK = 1; nextFull = false;
+  setHoldNote('wait');
+  holdNow(true);
+  holdTimer = setInterval(() => holdNow(false), 45000);   // the server keeps a hold for 120 s
 }
 function endHold(release) {
-  clearInterval(holdTimer); setHoldNote('');
+  clearInterval(holdTimer); clearTimeout(holdDeb); setHoldNote('');
+  myHoldK = 1; nextFull = false;
   if (!myHold) return;
   myHold = null;
   if (release) return post({ action: 'release', hid }, true).catch(() => {});
@@ -719,7 +825,7 @@ function renderMine() {
   const w = $('#mineWrap'), m = cfg && getMine(), cd = m && until(m);
   if (!m || cd == null) { w.hidden = true; return; }
   w.hidden = false;
-  setText($('#mDate'), fullDate(m.date)); setText($('#mTime'), range(m.time)); setText($('#mCd'), cd);
+  setText($('#mDate'), fullDate(m.date)); setText($('#mTime'), blockRange(m.time, mineSlots(m)) + (m.people > 1 ? ' · ' + m.people + ' orang' : '')); setText($('#mCd'), cd);
   const ok = mineStatus === 'Approved', st = $('#mSt');
   setText(st, ok ? 'Dikonfirmasi' : 'Menunggu konfirmasi'); st.className = 'mst' + (ok ? ' ok' : '');
 }
@@ -739,10 +845,10 @@ let toastT = 0;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3200); }
 $('#mChange').onclick = () => { setMove(true); document.querySelector('.reserve').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 $('#moveX').onclick = () => setMove(false);
-$('#mIcs').onclick = () => { const m = getMine(); if (m) downloadIcs(m.date, m.time); };
+$('#mIcs').onclick = () => { const m = getMine(); if (m) downloadIcs(m.date, m.time, mineSlots(m)); };
 $('#mCancel').onclick = () => {
   const m = getMine(); if (!m) return;
-  $('#cxlMsg').textContent = fullDate(m.date) + ', pukul ' + range(m.time) + '.';
+  $('#cxlMsg').textContent = fullDate(m.date) + ', pukul ' + blockRange(m.time, mineSlots(m)) + '.';
   $('#cxlErr').textContent = ''; $('#cxlYes').disabled = false;
   cxl.showModal();
 };
@@ -762,13 +868,13 @@ $('#cxlYes').onclick = async () => {
 };
 
 /* ---- add to calendar (.ics, floating local time) ---- */
-function downloadIcs(date, time) {
+function downloadIcs(date, time, slots) {
   const d = date.replace(/-/g, ''), t = x => x.replace(':', '') + '00';
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
   const ics = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Hens Bone Setting//Reservasi//ID', 'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT', 'UID:' + d + 'T' + t(time) + '@hens-bone-setting', 'DTSTAMP:' + stamp,
-    'DTSTART:' + d + 'T' + t(time), 'DTEND:' + d + 'T' + t(endTime(time, cfg.slotMinutes)),
+    'DTSTART:' + d + 'T' + t(time), 'DTEND:' + d + 'T' + t(endTime(time, cfg.slotMinutes * (slots || 1))),
     "SUMMARY:Janji temu - Hen's Bone Setting",
     'BEGIN:VALARM', 'TRIGGER:-PT1H', 'ACTION:DISPLAY', 'DESCRIPTION:Janji temu 1 jam lagi', 'END:VALARM',
     'END:VEVENT', 'END:VCALENDAR'
@@ -882,7 +988,7 @@ let lastAct = Date.now();
 ['pointerdown', 'touchstart', 'scroll', 'wheel', 'keydown'].forEach(ev =>
   window.addEventListener(ev, () => { lastAct = Date.now(); }, { passive: true, capture: true })); // capture: also sees scrolling inside the carousel / day strip
 function idleCheck() {
-  if (dlg.open || dup.open || cxl.open || lb.open) { lastAct = Date.now(); return; } // never reload while a dialog is open
+  if (dlg.open || dup.open || cxl.open || nxt.open || lb.open) { lastAct = Date.now(); return; } // never reload while a dialog is open
   if (Date.now() - lastAct >= 60000) location.reload();
 }
 setInterval(() => { if (!document.hidden) idleCheck(); }, 5000);
