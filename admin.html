@@ -340,6 +340,8 @@
   .lnote { padding:30px 10px; text-align:center; color:var(--muted); font-weight:500; }
   .card.dragable { cursor:grab; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
   .card.lifted { opacity:.35; }
+  .card.cont { background:rgba(0,122,255,.06); box-shadow:inset 4px 0 0 rgba(0,122,255,.35); }
+  .card.cont .nm { color:var(--muted); font-weight:600; }
   body.dragging, body.dragging * { cursor:grabbing !important; -webkit-user-select:none; user-select:none; }
   body.dragging .cell[data-drop] .empty { background:rgba(0,122,255,.07); color:var(--blue); box-shadow:inset 0 0 0 1.5px rgba(0,122,255,.25); }
   body.dragging .cell.dropok .empty { background:var(--blue-soft); box-shadow:inset 0 0 0 2.5px var(--blue); transform:scale(.97); }
@@ -528,6 +530,7 @@
       <div><label for="aTime">Time</label><select class="fld" id="aTime"></select></div>
     </div>
     <div style="margin-bottom:12px"><label for="aName">Name</label><input class="fld" id="aName" maxlength="80" autocapitalize="words" enterkeyhint="next" autocomplete="off" placeholder="Full name" required></div>
+    <div style="margin-bottom:12px"><label for="aPeople">People</label><input class="fld" id="aPeople" type="text" inputmode="numeric" maxlength="2" autocomplete="off" value="1"></div>
     <div style="margin-bottom:18px"><label for="aPhone">Phone</label><input class="fld" id="aPhone" type="tel" inputmode="tel" enterkeyhint="done" maxlength="20" autocomplete="off" placeholder="+62 812 3456 7890" required></div>
     <div class="cbtns">
       <button type="button" class="btn ghost" id="aCancel">Cancel</button>
@@ -541,7 +544,7 @@
 <script>
 const $ = s => document.querySelector(s);
 const mq = window.matchMedia('(min-width:900px)');
-let timeKey = '', token = '', cfg = null, weekStart = '', rows = [], selDay = '', closed = new Map(), R = [], rulesDirty = false;
+let cont = new Map(), timeKey = '', token = '', cfg = null, weekStart = '', rows = [], selDay = '', closed = new Map(), R = [], rulesDirty = false;
 
 function h(tag, props, ...kids) {
   const e = document.createElement(tag);
@@ -629,6 +632,8 @@ function render() {
       h('button', { class: 'chip blue', type: 'button', onclick: openAdd }, '+ New')));
 
   const byKey = new Map(rows.map(r => [r.date + ' ' + r.time, r]));
+  cont = new Map();                                  // later slots of a booking that uses more than one slot
+  rows.forEach(r => { for (let i = 1; i < (r.slots || 1); i++) cont.set(r.date + ' ' + endTime(r.time, cfg.slotMinutes * i), r); });
 
   const tabs = $('#tabs'), keepX = tabs.scrollLeft; tabs.replaceChildren();
   days.forEach(d => {
@@ -664,6 +669,11 @@ function render() {
 function cell(d, t, r) {
   const past = (d + ' ' + t) <= cfg.now;
   const c = h('div', { class: 'cell' + (past ? ' past' : '') });
+  if (!r && cont.has(d + ' ' + t)) {                  // second (third...) slot of a bigger booking
+    const o = cont.get(d + ' ' + t);
+    c.append(h('div', { class: 'card cont' }, h('div', { class: 'nm', text: '↳ ' + o.name }), h('div', { class: 'hint', text: o.people + ' people · continues' })));
+    return c;
+  }
   if (!r && !timesOn(d).includes(t)) { c.append(h('div', { class: 'offcell', text: '–' })); return c; }   // outside this weekday's opening hours
   if (!r && closed.has(d + ' ' + t)) {
     c.append(h('div', { class: 'card Closed' },
@@ -702,6 +712,7 @@ function cell(d, t, r) {
     r.phone ? h('a', { href: 'tel:' + r.phone, text: r.phone }) : null,
     r.phone ? h('a', { href: waLink(r.phone), target: '_blank', rel: 'noopener', text: 'WhatsApp' }) : null,
     h('span', { class: 'badge', text: r.status }),
+    r.people > 1 ? h('span', { class: 'badge', text: r.people + ' people · ' + r.slots + ' slots' }) : null,
     nsBadge(r));
   const card = h('div', { class: 'card ' + r.status },
     h('div', { class: 'nm', text: r.name }),
@@ -1007,8 +1018,8 @@ function openAdd() {
   $('#aDate').value = d;
   fillAddTimes(d);
   const tt = timesOn(d);
-  $('#aTime').value = tt.find(t => !busy.has(t) && !closed.has(d + ' ' + t) && (d + ' ' + t) > cfg.now) || tt[0] || '';
-  $('#aName').value = ''; $('#aPhone').value = ''; $('#aErr').textContent = '';
+  $('#aTime').value = tt.find(t => !busy.has(t) && !cont.has(d + ' ' + t) && !closed.has(d + ' ' + t) && (d + ' ' + t) > cfg.now) || tt[0] || '';
+  $('#aName').value = ''; $('#aPhone').value = ''; $('#aPeople').value = '1'; $('#aErr').textContent = '';
   addDlg.showModal();
   if (matchMedia('(hover:hover)').matches) $('#aName').focus();
 }
@@ -1022,15 +1033,17 @@ addDlg.addEventListener('click', e => { if (e.target === addDlg) addDlg.close();
 $('#addForm').addEventListener('submit', async e => {
   e.preventDefault();
   const date = $('#aDate').value, time = $('#aTime').value, name = $('#aName').value.trim(), phoneRaw = $('#aPhone').value.trim();
+  const people = /^\d{1,2}$/.test($('#aPeople').value.trim()) ? +$('#aPeople').value.trim() : 0, maxP = (cfg && cfg.maxPeople) || 10;
   const bad = !/^\d{4}-\d{2}-\d{2}$/.test(date) ? 'Pick a date.'
     : !time ? 'Closed that day. Change it in Setting > Opening hours.'
     : name.length < 2 ? 'Enter a name.'
+    : people < 1 || people > maxP ? 'People must be between 1 and ' + maxP + '.'
     : !/^[0-9+\-\s()]{7,20}$/.test(phoneRaw) ? 'Enter a valid phone number.' : '';
   $('#aErr').textContent = bad;
   if (bad) return;
   const btn = $('#aSave'); btn.disabled = true; btn.textContent = 'Saving…';
   try {
-    const r = await api({ action: 'admin_add', date, time, name, phone: normPhone(phoneRaw) });
+    const r = await api({ action: 'admin_add', date, time, name, phone: normPhone(phoneRaw), people });
     if (!r.ok) throw new Error(r.error);
     addDlg.close();
     selDay = date;
