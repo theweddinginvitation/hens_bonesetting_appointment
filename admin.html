@@ -341,6 +341,13 @@
   .lnote { padding:30px 10px; text-align:center; color:var(--muted); font-weight:500; }
   .card.dragable { cursor:grab; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
   .card.lifted { opacity:.35; }
+  .pend { margin:0 0 20px; }
+  .pend h2 { margin:0 0 10px; font-family:var(--display); font-size:19px; font-weight:700; letter-spacing:-.022em; display:flex; align-items:center; gap:8px; }
+  .pend h2 .pn { background:#ff9f0a; color:#fff; font-size:13px; font-weight:700; min-width:24px; height:24px; padding:0 7px; border-radius:12px; display:inline-grid; place-items:center; }
+  .pcards { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:10px; }
+  .pcard { cursor:pointer; transition:transform .5s var(--spring); }
+  .pcard:active { transform:scale(.98); transition-duration:.1s; }
+  .pcard .when { font-size:12.5px; font-weight:600; color:#b36200; margin-bottom:2px; font-variant-numeric:tabular-nums; }
   .card.cont { background:rgba(0,122,255,.06); box-shadow:inset 4px 0 0 rgba(0,122,255,.35); }
   .card.cont .nm { color:var(--muted); font-weight:600; }
   body.dragging, body.dragging * { cursor:grabbing !important; -webkit-user-select:none; user-select:none; }
@@ -386,6 +393,7 @@
     </div>
   </header>
   <main class="wrap" id="apptMain">
+    <section class="pend" id="pend" hidden aria-label="Pending appointments"></section>
     <div id="grid"></div>
     <div id="list"></div>
   </main>
@@ -633,6 +641,7 @@ function render() {
       h('button', { class: 'chip blue', type: 'button', onclick: openAdd }, '+ New')));
 
   const byKey = new Map(rows.map(r => [r.date + ' ' + r.time, r]));
+  renderPending();
   cont = new Map();                                  // later slots of a booking that uses more than one slot
   rows.forEach(r => { for (let i = 1; i < (r.slots || 1); i++) cont.set(r.date + ' ' + endTime(r.time, cfg.slotMinutes * i), r); });
 
@@ -665,6 +674,31 @@ function render() {
     dt.forEach(t => list.append(h('div', { class: 'lrow' },
       h('div', { class: 'tl', text: t }), cell(selDay, t, byKey.get(selDay + ' ' + t)))));
   }
+}
+
+// Pending bookings of this week, pinned above the calendar so they never hide at the bottom of a long day.
+function renderPending() {
+  const box = $('#pend');
+  const list = rows.filter(r => r.name && r.status === 'Pending' && !r.tmp && (r.date + ' ' + r.time) > cfg.now)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  box.hidden = !list.length;
+  if (!list.length) { box.replaceChildren(); return; }
+  const cards = list.map(r => {
+    const acts = h('div', { class: 'acts' },
+      h('button', { class: 'b-ap', type: 'button', text: 'Approve', onclick: e => { e.stopPropagation(); act({ action: 'update', id: r.id, status: 'Approved' }, 'Approved.'); } }),
+      h('button', { class: 'b-ca', type: 'button', text: 'Cancel', onclick: e => { e.stopPropagation();
+        confirmBox('Cancel appointment?', r.name + ' · ' + longDate(r.date) + ', ' + r.time + '. The slot becomes available again.',
+          () => act({ action: 'update', id: r.id, status: 'Cancelled' }, 'Slot available again.')); } }));
+    const meta = h('div', { class: 'meta' },
+      r.phone ? h('a', { href: 'tel:' + r.phone, text: r.phone, onclick: e => e.stopPropagation() }) : null,
+      r.phone ? h('a', { href: waLink(r.phone), target: '_blank', rel: 'noopener', text: 'WhatsApp', onclick: e => e.stopPropagation() }) : null,
+      r.people > 1 ? h('span', { class: 'badge', text: r.people + ' people · ' + r.slots + ' slots' }) : null,
+      nsBadge(r));
+    return h('div', { class: 'card Pending pcard', onclick: () => { selDay = r.date; render(); (mq.matches ? $('#grid') : $('#tabs')).scrollIntoView({ behavior: 'smooth', block: 'start' }); } },
+      h('div', { class: 'when', text: dow(r.date) + ', ' + md(r.date) + ' · ' + r.time + ' - ' + endTime(r.time, cfg.slotMinutes * (r.slots || 1)) }),
+      h('div', { class: 'nm', text: r.name }), meta, acts);
+  });
+  box.replaceChildren(h('h2', null, 'Pending', h('span', { class: 'pn', text: list.length })), h('div', { class: 'pcards' }, ...cards));
 }
 
 function cell(d, t, r) {
